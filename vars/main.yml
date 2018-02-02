@@ -1,0 +1,26 @@
+---
+# Copyright 2018, Rackspace US, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# NOTE(cloudnull): These are host specific variables we capture up-front. This
+#                  These psuedo variables are used to capture the container host
+#                  information.
+ansible_container_host: "{{ hostvars[inventory_hostname]['physical_host'] }}"
+ansible_container_architecture: "{{ hostvars[ansible_container_host]['ansible_architecture'] | lower }}"
+
+nspawn_architecture_mapping:
+  x86_64: amd64
+  ppc64le: ppc64el
+  s390x: s390x
+  armv7l: armhf

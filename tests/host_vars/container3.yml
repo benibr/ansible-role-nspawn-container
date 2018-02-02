@@ -1,0 +1,6 @@
+---
+ansible_host: 10.100.100.4
+ansible_become: True
+ansible_user: root
+
+physical_host: localhost

@@ -1,0 +1,35 @@
+# {{ ansible_managed }}
+
+[Exec]
+Boot=on
+
+[Files]
+{% for ro_bind in nspawn_read_only_host_bindmount %}
+BindReadOnly={{ ro_bind.source }}:{{ ro_bind.dest }}
+{% endfor %}
+Bind=/openstack/backup/{{ inventory_hostname }}:/var/backup
+Bind=/openstack/log/{{ inventory_hostname }}:/var/log
+{% for bind in container_default_bind_mounts | union(container_bind_mounts | default([])) %}
+Bind={{ bind.mount_path }}:{{ bind.bind_dir_path }}
+{% endfor %}
+{% for bind in nspawn_shared_host_bindmount %}
+Bind={{ bind }}:{{ bind }}
+{% endfor %}
+{% if deployment_environment_variables is defined %}
+{%   for key, value in deployment_environment_variables.items() %}
+Environment={{ key }}={{ value }}
+{%   endfor %}
+{% endif %}
+
+[Network]
+{% set macvlans = [] %}
+{% set _ = container_networks.update(nspawn_networks) %}
+{% for key, value in container_networks.items() %}
+{%   if value.bridge is defined %}
+{%     set macvlan = 'mv-' + value.bridge.split('br-')[-1] %}
+{%   else %}
+{%     set macvlan = 'mv-' + key %}
+{%   endif %}
+{%   set _ = macvlans.append(macvlan) %}
+{% endfor %}
+MACVLAN={{ macvlans | unique | join(' ') }}

@@ -1,0 +1,44 @@
+# {{ ansible_managed }}
+
+[Match]
+{% if item.value.bridge is defined %}
+Name=mv-mv-{{ item.value.bridge.split('br-')[-1] }}
+{% else %}
+Name=mv-mv-{{ item.key }}
+{% endif %}
+
+{% if item.value.address is defined %}
+[Address]
+{% set addr_cidr = (item.value.address | string + '/' + item.value.netmask | string) | ipaddr('prefix') %}
+Address={{ item.value.address }}/{{ addr_cidr }}
+{% else %}
+[DHCP]
+UseDNS=yes
+UseNTP=yes
+RouteMetric=20
+{% endif %}
+
+{% if item.value.static_routes is defined %}
+[Route]
+{%   for route in item.value.static_routes %}
+Source={{ route['cidr'] }}
+Gateway={{ route['gateway'] }}
+{%   endfor %}
+{% endif %}
+
+[Network]
+{% if item.value.address is defined %}
+{%   set addr_cidr = (item.value.address | string + '/' + item.value.netmask | string) | ipaddr('prefix') %}
+Address={{ item.value.address }}/{{ addr_cidr }}
+{% else %}
+DHCP=yes
+{% endif %}
+{% if item.value.gateway is defined %}
+Gateway={{ item.value.gateway }}
+{% endif %}
+
+[Link]
+{% if item.value.mtu is defined %}
+MTUBytes={{ item.value.mtu }}
+{% endif %}
+ARP=yes

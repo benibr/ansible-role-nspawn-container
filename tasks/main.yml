@@ -1,0 +1,225 @@
+---
+# Copyright 2017, Rackspace US, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Pull systemd version
+  command: "systemctl --version"
+  changed_when: false
+  register: systemd_version
+  delegate_to: "{{ physical_host }}"
+  tags:
+    - skip_ansible_lint
+    - always
+
+- name: Set facts
+  set_fact:
+    nspawn_systemd_version: "{{ systemd_version.stdout_lines[0].split()[-1] }}"
+  tags:
+    - always
+
+- name: Gather variables for each operating system
+  include_vars: "{{ item }}"
+  with_first_found:
+    - "{{ hostvars[physical_host]['ansible_distribution'] | lower }}-{{ hostvars[physical_host]['ansible_distribution_version'] | lower }}.yml"
+    - "{{ hostvars[physical_host]['ansible_distribution'] | lower }}-{{ hostvars[physical_host]['ansible_distribution_major_version'] | lower }}.yml"
+    - "{{ hostvars[physical_host]['ansible_os_family'] | lower }}-{{ hostvars[physical_host]['ansible_distribution_major_version'] | lower }}.yml"
+    - "{{ hostvars[physical_host]['ansible_distribution'] | lower }}.yml"
+    - "{{ hostvars[physical_host]['ansible_os_family'] | lower }}.yml"
+  tags:
+    - always
+
+- name: Escape quote container name
+  command: "systemd-escape {{ inventory_hostname }}"
+  changed_when: false
+  register: systemd_escape
+  delegate_to: "{{ physical_host }}"
+  tags:
+    - skip_ansible_lint
+    - always
+
+- name: Get container status
+  command: machinectl status "{{ inventory_hostname }}"
+  register: machinectl_container_status
+  failed_when: false
+  delegate_to: "{{ physical_host }}"
+
+- name: Get container image status
+  command: machinectl image-status "{{ inventory_hostname }}"
+  register: machinectl_container_image_status
+  failed_when: false
+  delegate_to: "{{ physical_host }}"
+
+- name: Get image status
+  command: machinectl image-status "{{ container_image }}"
+  register: machinectl_image_status
+  failed_when: false
+  delegate_to: "{{ physical_host }}"
+
+- name: Fail if base image does not exist
+  fail:
+    msg: >
+      The base container image "{{ container_image }}" does not exist. Check
+      the name and try again.
+  when:
+    - machinectl_image_status.rc != 0
+
+- name: Clone the base container image
+  command: machinectl clone "{{ container_image }}" "{{ inventory_hostname }}"
+  when:
+    - machinectl_container_image_status.rc != 0
+  register: machinectl_container_clone
+  retries: 5
+  delay: 2
+  until: machinectl_container_clone | success
+  delegate_to: "{{ physical_host }}"
+
+- name: Container directories
+  file:
+    path: "{{ item }}"
+    state: "directory"
+  with_items:
+    - "/openstack/{{ inventory_hostname }}"
+    - "/openstack/backup/{{ inventory_hostname }}"
+    - "/openstack/log/{{ inventory_hostname }}"
+    - "/var/lib/machines/{{ inventory_hostname }}/etc/systemd/network"
+    - "/var/lib/machines/{{ inventory_hostname }}/etc/systemd/nspawn"
+  delegate_to: "{{ physical_host }}"
+
+- name: Container RO bind path cleanup
+  file:
+    path: "/var/lib/machines/{{ inventory_hostname }}{{ item.dest }}"
+    state: "absent"
+  with_items: "{{ nspawn_read_only_host_bindmount }}"
+  delegate_to: "{{ physical_host }}"
+  when:
+    - machinectl_container_status.rc != 0
+
+- name: Container inner service directories
+  file:
+    path: "/var/lib/machines/{{ inventory_hostname }}/{{ item.bind_dir_path }}"
+    state: "directory"
+  with_items: "{{ container_default_bind_mounts | union(container_bind_mounts | default([])) }}"
+  delegate_to: "{{ physical_host }}"
+
+- name: Container outer service directories
+  file:
+    path: "{{ item.mount_path }}"
+    state: "directory"
+  with_items: "{{ container_default_bind_mounts | union(container_bind_mounts | default([])) }}"
+  delegate_to: "{{ physical_host }}"
+
+- name: nspawn config block
+  block:
+    - name: slurp existing nspawn config
+      slurp:
+        src: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
+      register: nspawn_config
+      changed_when: false
+      delegate_to: "{{ physical_host }}"
+
+    - name: Copy container config (new)
+      config_template:
+        content: "{{ nspawn_config.content | b64decode }}"
+        dest: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+        config_overrides: "{{ container_config_overrides | default({}) }}"
+        config_type: "ini"
+      delegate_to: "{{ physical_host }}"
+  rescue:
+    - name: Copy container config (new)
+      config_template:
+        src: templates/container_config.nspawn.j2
+        dest: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+        config_overrides: "{{ container_config_overrides | default({}) }}"
+        config_type: "ini"
+      delegate_to: "{{ physical_host }}"
+  when:
+    - nspawn_systemd_version | int > 219
+
+- name: Copy container config (old)
+  template:
+    src: templates/container_config_old.nspawn.j2
+    dest: "/etc/systemd/system/systemd-nspawn@{{ systemd_escape.stdout }}.service"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  register: container_config_old
+  delegate_to: "{{ physical_host }}"
+  when:
+    - nspawn_systemd_version | int < 220
+
+- name: Copy container interface config
+  config_template:
+    src: container_mv.network.j2
+    dest: "/var/lib/machines/{{ inventory_hostname }}/etc/systemd/network/mv-mv-{{ item.key }}.network"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+    config_overrides: "{{ container_network_config_overrides | default({}) }}"
+    config_type: "ini"
+  with_dict: "{{ container_networks | combine(nspawn_networks) }}"
+  delegate_to: "{{ physical_host }}"
+
+- name: Create localhost config
+  lineinfile:
+    dest: "/var/lib/machines/{{ inventory_hostname }}/etc/hosts"
+    regexp: "^127.0.0.1"
+    line: "127.0.0.1 localhost"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  remote_user: root
+  delegate_to: "{{ physical_host }}"
+
+- name: Create domain config
+  lineinfile:
+    dest: "/var/lib/machines/{{ inventory_hostname }}/etc/hosts"
+    regexp: "^127.0.1.1"
+    line: "127.0.1.1 {{ inventory_hostname | replace('_', '-') }}.{{ container_domain }} {{ inventory_hostname | replace('_', '-') }}"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  remote_user: root
+  delegate_to: "{{ physical_host }}"
+
+- name: Create hostname
+  copy:
+    dest: "/var/lib/machines/{{ inventory_hostname }}/etc/hostname"
+    content: "{{ inventory_hostname | replace('_', '-') }}"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  remote_user: root
+  delegate_to: "{{ physical_host }}"
+
+- name: Start (enable) new container
+  systemd:
+    daemon_reload: yes
+    name: "systemd-nspawn@{{ systemd_escape.stdout }}"
+    state: "{{ (container_config_old | changed | default(false)) | ternary('restarted', 'started') }}"
+    enabled: "{{ (nspawn_systemd_version | int > 219) | ternary('true', 'false') }}"
+  delegate_to: "{{ physical_host }}"
+  notify:
+    - check connection
+
+- name: Restart networkd
+  service:
+    name: systemd-networkd
+    state: restarted
+    enabled: true

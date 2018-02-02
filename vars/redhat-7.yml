@@ -1,0 +1,35 @@
+---
+# Copyright 2018, Rackspace US, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+nspawn_map:
+  distro: centos
+  arch: "{{ nspawn_architecture_mapping[ansible_container_architecture] }}"
+  release: 7
+
+# This is a list of items that will be passed into the container as READ-ONLY
+# files or directories. If any of these items are passed into the container
+# the container create process will ensure the file is not present within the
+# contianer prior to writting the config.
+nspawn_read_only_host_bindmount:
+  - { source: /etc/resolv.conf, dest: /etc/resolv.conf }
+  - { source: /etc/environment, dest: /etc/environment }
+  - { source: /etc/localtime, dest: /etc/localtime }
+
+# This is a list of items that will be passed into the container as a shared
+# bind mount. If any of these items are passed into the container.
+nspawn_shared_host_bindmount:
+  - /etc/yum
+  - /root
+  - /opt

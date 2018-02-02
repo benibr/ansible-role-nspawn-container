@@ -1,0 +1,77 @@
+# {{ ansible_managed }}
+
+{% set cli_switches = [] %}
+{% for ro_bind in nspawn_read_only_host_bindmount %}
+{%   set _ = cli_switches.append('--bind-ro=' + ro_bind.source + ':' + ro_bind.dest) %}
+{% endfor %}
+{% set _ = cli_switches.append('--bind=/openstack/backup/' + inventory_hostname + ':/var/backup') %}
+{% set _ = cli_switches.append('--bind=/openstack/log/' + inventory_hostname + ':/var/log') %}
+{% for bind in container_default_bind_mounts | union(container_bind_mounts | default([])) %}
+{%   set _ = cli_switches.append('--bind=' + bind.mount_path + ':' + bind.bind_dir_path) %}
+{% endfor %}
+{% for bind in nspawn_shared_host_bindmount %}
+{%   set _ = cli_switches.append('--bind=' + bind + ':' + bind) %}
+{% endfor %}
+{% if deployment_environment_variables is defined %}
+{%   for key, value in deployment_environment_variables.items() %}
+{%     set _ = cli_switches.append('--setenv=' + key + '=' + value) %}
+{%   endfor %}
+{% endif %}
+{% set macvlans = [] %}
+{% set _ = container_networks.update(nspawn_networks) %}
+{% for key, value in container_networks.items() %}
+{%   if value.bridge is defined %}
+{%     set macvlan = 'mv-' + value.bridge.split('br-')[-1] %}
+{%   else %}
+{%     set macvlan = 'mv-' + key %}
+{%   endif %}
+{%   if macvlan not in macvlans %}
+{%     set _ = macvlans.append(macvlan) %}
+{%     set _ = cli_switches.append('--network-macvlan=' + macvlan) %}
+{%   endif %}
+{% endfor %}
+
+# This file is normally part of systemd however due to limitations in systemd
+# < 220 we're not able to able to use the nspawn configuration file for our
+# normal container config. This template generates all of the cli switches to
+# start the container in a way that we expect.
+
+[Unit]
+Description=Container {{ systemd_escape.stdout }}
+Documentation=man:systemd-nspawn(1)
+PartOf=machines.target
+Before=machines.target
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/systemd-nspawn --keep-unit --boot --link-journal=try-guest --machine={{ systemd_escape.stdout }} {{ cli_switches | unique | join(' ') }}
+KillMode=mixed
+Type=notify
+RestartForceExitStatus=133
+SuccessExitStatus=133
+Slice=machine.slice
+Delegate=yes
+TasksMax=8192
+
+# Enforce a strict device policy, similar to the one nspawn configures
+# when it allocates its own scope unit. Make sure to keep these
+# policies in sync if you change them!
+DevicePolicy=strict
+DeviceAllow=/dev/null rwm
+DeviceAllow=/dev/zero rwm
+DeviceAllow=/dev/full rwm
+DeviceAllow=/dev/random rwm
+DeviceAllow=/dev/urandom rwm
+DeviceAllow=/dev/tty rwm
+DeviceAllow=/dev/net/tun rwm
+DeviceAllow=/dev/pts/ptmx rw
+DeviceAllow=char-pts rw
+
+# nspawn itself needs access to /dev/loop-control and /dev/loop, to
+# implement the --image= option. Add these here, too.
+DeviceAllow=/dev/loop-control rw
+DeviceAllow=block-loop rw
+DeviceAllow=block-blkext rw
+
+[Install]
+WantedBy=multi-user.target
