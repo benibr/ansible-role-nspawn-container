@@ -23,7 +23,6 @@ nspawn_map:
 # the container create process will ensure the file is not present within the
 # contianer prior to writting the config.
 nspawn_read_only_host_bindmount:
-  - { source: /etc/resolv.conf, dest: /etc/resolv.conf }
   - { source: /etc/environment, dest: /etc/environment }
   - { source: /etc/localtime, dest: /etc/localtime }
 
@@ -33,3 +32,6 @@ nspawn_shared_host_bindmount:
   - /etc/yum
   - /root
   - /opt
+
+nspawn_dbus_package:
+  - dbus

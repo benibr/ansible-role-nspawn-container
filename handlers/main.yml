@@ -19,8 +19,18 @@
     timeout: 60
   listen: check connection
 
-- name: Set local facts for new container(s)
+- name: Gather facts for new container(s)
   setup:
-    filter: ansible_local
     gather_subset: "!all"
+  listen: check connection
+
+- name: Ensure dbus is installed
+  package:
+    name: "{{ nspawn_dbus_package }}"
+    state: present
+    update_cache: "{{ ansible_pkg_mgr in ['apt', 'zypper'] }}"
+  register: dbus_install
+  retries: 5
+  delay: 3
+  until: dbus_install | success
   listen: check connection
