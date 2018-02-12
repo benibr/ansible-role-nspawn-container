@@ -30,6 +30,10 @@
 {%     set _ = cli_switches.append('--network-macvlan=' + macvlan) %}
 {%   endif %}
 {% endfor %}
+{% if macvlans | length > 0 %}
+{%   set _ = cli_switches.append('--private-network') %}
+{% endif %}
+{% set _ = cli_switches.append('--uuid=' + systemd_escape.stdout | to_uuid) %}
 
 # This file is normally part of systemd however due to limitations in systemd
 # < 220 we're not able to able to use the nspawn configuration file for our
@@ -44,7 +48,7 @@ Before=machines.target
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/systemd-nspawn --keep-unit --boot --link-journal=try-guest --machine={{ systemd_escape.stdout }} {{ cli_switches | unique | join(' ') }}
+ExecStart=/usr/bin/systemd-nspawn --keep-unit --boot --link-journal=try-host --machine={{ systemd_escape.stdout }} {{ cli_switches | unique | join(' ') }}
 KillMode=mixed
 Type=notify
 RestartForceExitStatus=133

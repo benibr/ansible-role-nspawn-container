@@ -2,6 +2,12 @@
 
 [Exec]
 Boot=on
+{% if deployment_environment_variables is defined %}
+{%   for key, value in deployment_environment_variables.items() %}
+Environment={{ key }}={{ value }}
+{%   endfor %}
+{% endif %}
+MachineID={{ systemd_escape.stdout | to_uuid }}
 
 [Files]
 {% for ro_bind in nspawn_read_only_host_bindmount %}
@@ -15,11 +21,6 @@ Bind={{ bind.mount_path }}:{{ bind.bind_dir_path }}
 {% for bind in nspawn_shared_host_bindmount %}
 Bind={{ bind }}:{{ bind }}
 {% endfor %}
-{% if deployment_environment_variables is defined %}
-{%   for key, value in deployment_environment_variables.items() %}
-Environment={{ key }}={{ value }}
-{%   endfor %}
-{% endif %}
 
 [Network]
 {% set macvlans = [] %}
@@ -32,4 +33,7 @@ Environment={{ key }}={{ value }}
 {%   endif %}
 {%   set _ = macvlans.append(macvlan) %}
 {% endfor %}
+{% if macvlans | length > 0 %}
+Private=yes
 MACVLAN={{ macvlans | unique | join(' ') }}
+{% endif %}

@@ -52,18 +52,21 @@
   command: machinectl status "{{ inventory_hostname }}"
   register: machinectl_container_status
   failed_when: false
+  changed_when: false
   delegate_to: "{{ physical_host }}"
 
 - name: Get container image status
   command: machinectl image-status "{{ inventory_hostname }}"
   register: machinectl_container_image_status
   failed_when: false
+  changed_when: false
   delegate_to: "{{ physical_host }}"
 
 - name: Get image status
   command: machinectl image-status "{{ container_image }}"
   register: machinectl_image_status
   failed_when: false
+  changed_when: false
   delegate_to: "{{ physical_host }}"
 
 - name: Fail if base image does not exist
@@ -201,7 +204,8 @@
 - name: Create hostname
   copy:
     dest: "/var/lib/machines/{{ inventory_hostname }}/etc/hostname"
-    content: "{{ inventory_hostname | replace('_', '-') }}"
+    content: |
+      {{ inventory_hostname | replace('_', '-') }}
     owner: "root"
     group: "root"
     mode: "0644"
@@ -215,6 +219,7 @@
     state: "{{ (container_config_old | changed | default(false)) | ternary('restarted', 'started') }}"
     enabled: "{{ (nspawn_systemd_version | int > 219) | ternary('true', 'false') }}"
   delegate_to: "{{ physical_host }}"
+  register: container_start
   notify:
     - check connection
 
@@ -223,3 +228,18 @@
     name: systemd-networkd
     state: restarted
     enabled: true
+
+- name: Create journal directory
+  file:
+    path: "/var/log/journal"
+    state: "directory"
+
+- name: Restart new container (first run only)
+  systemd:
+    name: "systemd-nspawn@{{ systemd_escape.stdout }}"
+    state: "restarted"
+  delegate_to: "{{ physical_host }}"
+  when:
+    - machinectl_container_image_status.rc != 0
+  notify:
+    - check connection
