@@ -34,3 +34,18 @@
   delay: 3
   until: dbus_install | success
   listen: check connection
+
+- name: Restart new container (first boot only)
+  systemd:
+    name: "systemd-nspawn@{{ systemd_escape.stdout }}"
+    state: "restarted"
+  register: machinectl_first_boot
+  retries: 5
+  delay: 2
+  until: machinectl_first_boot | success
+  delegate_to: "{{ physical_host }}"
+  when:
+    - machinectl_container_image_status.rc != 0
+  notify:
+    - check connection
+  listen: Container first boot

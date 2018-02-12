@@ -86,6 +86,8 @@
   delay: 2
   until: machinectl_container_clone | success
   delegate_to: "{{ physical_host }}"
+  notify:
+    - Container first boot
 
 - name: Container directories
   file:
@@ -218,8 +220,11 @@
     name: "systemd-nspawn@{{ systemd_escape.stdout }}"
     state: "{{ (container_config_old | changed | default(false)) | ternary('restarted', 'started') }}"
     enabled: "{{ (nspawn_systemd_version | int > 219) | ternary('true', 'false') }}"
+  register: machinectl_start
+  retries: 5
+  delay: 2
+  until: machinectl_start | success
   delegate_to: "{{ physical_host }}"
-  register: container_start
   notify:
     - check connection
 
@@ -233,13 +238,3 @@
   file:
     path: "/var/log/journal"
     state: "directory"
-
-- name: Restart new container (first run only)
-  systemd:
-    name: "systemd-nspawn@{{ systemd_escape.stdout }}"
-    state: "restarted"
-  delegate_to: "{{ physical_host }}"
-  when:
-    - machinectl_container_image_status.rc != 0
-  notify:
-    - check connection
