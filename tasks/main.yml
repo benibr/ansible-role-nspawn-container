@@ -214,6 +214,23 @@
   remote_user: root
   delegate_to: "{{ physical_host }}"
 
+- name: Generate machine-id
+  command: "systemd-machine-id-setup --root=/var/lib/machines/{{ inventory_hostname }}"
+  args:
+    creates: "/var/lib/machines/{{ inventory_hostname }}/etc/machine-id"
+  delegate_to: "{{ physical_host }}"
+  notify:
+    - Container first boot
+
+- name: Create dbus machine-id
+  copy:
+    src: "/var/lib/machines/{{ inventory_hostname }}/etc/machine-id"
+    dest: "/var/lib/machines/{{ inventory_hostname }}/var/lib/dbus/machine-id"
+    mode: "0444"
+    remote_src: "yes"
+  remote_user: root
+  delegate_to: "{{ physical_host }}"
+
 - name: Start (enable) new container
   systemd:
     daemon_reload: yes
