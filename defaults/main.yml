@@ -26,8 +26,12 @@ container_image: "{{ nspawn_map['distro'] }}-{{ nspawn_map['release'] }}-{{ nspa
 
 nspawn_networks:
   nspawn_address:
-    bridge: "{{ hostvars[ansible_container_host]['ansible_default_ipv4']['interface'] | default('br-nspawn') }}"
-    enable_dhcp: true
+    # The name of the interface, by default this is a dummy device on a private
+    # network however it could be a bridge or any other interface.
+    bridge: "nspawn0"
+    # Optional | Set bool to enable a private device. This will create a bridge
+    #            not connecting to the underlying L2.
+    private_device: true
 
 # This is a list of items that will be passed into the container as READ-ONLY
 # files or directories. If any of these items are passed into the container
