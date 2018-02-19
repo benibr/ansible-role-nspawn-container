@@ -124,37 +124,55 @@
   with_items: "{{ container_default_bind_mounts | union(container_bind_mounts | default([])) }}"
   delegate_to: "{{ physical_host }}"
 
-- name: nspawn config block
-  block:
-    - name: slurp existing nspawn config
-      slurp:
-        src: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
-      register: nspawn_config
-      changed_when: false
-      delegate_to: "{{ physical_host }}"
-
-    - name: Copy container config (new)
-      config_template:
-        content: "{{ nspawn_config.content | b64decode }}"
-        dest: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
-        owner: "root"
-        group: "root"
-        mode: "0644"
-        config_overrides: "{{ container_config_overrides | default({}) }}"
-        config_type: "ini"
-      delegate_to: "{{ physical_host }}"
-  rescue:
-    - name: Copy container config (new)
-      config_template:
-        src: templates/container_config.nspawn.j2
-        dest: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
-        owner: "root"
-        group: "root"
-        mode: "0644"
-        config_overrides: "{{ container_config_overrides | default({}) }}"
-        config_type: "ini"
-      delegate_to: "{{ physical_host }}"
+# Check for the existance of an nspawn configuration file. If found slurp it up
+# and use it as the base nspawn config file with the option to config template
+# override.
+- name: Locate nspawn config
+  stat:
+    path: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
+  register: nspawn_config_exists
+  delegate_to: "{{ physical_host }}"
   when:
+    - nspawn_systemd_version | int > 219
+
+- name: slurp existing nspawn config
+  slurp:
+    src: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
+  register: nspawn_config
+  changed_when: false
+  delegate_to: "{{ physical_host }}"
+  when:
+    - nspawn_config_exists.stat.exists | bool
+    - nspawn_systemd_version | int > 219
+
+- name: Copy container config (new)
+  config_template:
+    content: "{{ nspawn_config.content | b64decode }}"
+    dest: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+    config_overrides: "{{ container_config_overrides | default({}) }}"
+    config_type: "ini"
+  delegate_to: "{{ physical_host }}"
+  when:
+    - nspawn_config_exists.stat.exists | bool
+    - nspawn_systemd_version | int > 219
+
+# If no nspawn configuration file exists, create a new config file using the
+# default template.
+- name: Copy container config (new)
+  config_template:
+    src: templates/container_config.nspawn.j2
+    dest: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+    config_overrides: "{{ container_config_overrides | default({}) }}"
+    config_type: "ini"
+  delegate_to: "{{ physical_host }}"
+  when:
+    - not nspawn_config_exists.stat.exists | bool
     - nspawn_systemd_version | int > 219
 
 - name: Copy container config (old)
