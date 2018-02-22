@@ -1,0 +1,104 @@
+---
+# Copyright 2018, Rackspace US, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Setup nspawn host
+  hosts: localhost
+  connection: local
+  become: true
+  pre_tasks:
+    - name: Gather facts
+      setup:
+        gather_subset: "!all"
+
+    - name: Show host facts
+      debug:
+        var: hostvars
+
+    - name: Create test network service
+      template:
+        src: "templates/test-networks.service.j2"
+        dest: "/etc/systemd/system/00-test-networks.service"
+
+    - name: Enable test network service
+      systemd:
+        name: "00-test-networks.service"
+        state: "started"
+        enabled: true
+        daemon_reload: true
+
+    - name: Ensure root ssh key
+      user:
+        name: "{{ ansible_user_id | default('root') }}"
+        generate_ssh_key: "yes"
+        ssh_key_bits: 2048
+        ssh_key_file: ".ssh/id_rsa"
+
+    - name: Get root ssh key
+      slurp:
+        src: '~/.ssh/id_rsa.pub'
+      register: _root_ssh_key
+
+    - name: Prepare container ssh key fact
+      set_fact:
+        nspawn_container_ssh_key: "{{ _root_ssh_key['content'] | b64decode }}"
+
+    - name: Ensure public ssh key is in authorized_keys
+      authorized_key:
+        user: "{{ ansible_env.USER | default('root') }}"
+        key: "{{ nspawn_container_ssh_key }}"
+        manage_dir: no
+
+    - name: Clear iptables rules
+      command: "{{ item }}"
+      with_items:
+        - "iptables -F"
+        - "iptables -X"
+        - "iptables -t nat -F"
+        - "iptables -t nat -X"
+        - "iptables -t mangle -F"
+        - "iptables -t mangle -X"
+        - "iptables -P INPUT ACCEPT"
+        - "iptables -P FORWARD ACCEPT"
+        - "iptables -P OUTPUT ACCEPT"
+        - "iptables -A POSTROUTING -t mangle -p tcp -j CHECKSUM --checksum-fill"
+        - "iptables -t nat -A POSTROUTING -o {{ ansible_default_ipv4.interface }} -j MASQUERADE"
+      tags:
+        - skip_ansible_lint
+
+    # This is a very dirty hack due to images.linuxcontainers.org
+    # constantly failing to resolve in openstack-infra.
+    - name: Implement hard-coded hosts entries for consistently failing name
+      lineinfile:
+        path: "/etc/hosts"
+        line: "{{ item }}"
+        state: present
+      with_items:
+        - "91.189.91.21 images.linuxcontainers.org us.images.linuxcontainers.org"
+        - "91.189.88.37 images.linuxcontainers.org uk.images.linuxcontainers.org"
+
+  roles:
+    - role: "nspawn_hosts"
+
+  post_tasks:
+    - name: Create detail gathering script
+      template:
+        src: "dump-container-details.sh.j2"
+        dest: "/opt/dump-{{ inventory_hostname }}-details.sh"
+        mode: "0755"
+
+    - name: Collect details
+      command: "/opt/dump-{{ inventory_hostname }}-details.sh"
+      tags:
+        - skip_ansible_lint

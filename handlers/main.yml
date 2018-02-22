@@ -13,39 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-- name: Wait for container connectivity
-  wait_for_connection:
-    delay: 3
-    timeout: 60
-  listen: check connection
-
 - name: Gather facts for new container(s)
   setup:
     gather_subset: "!all"
-  listen: check connection
-
-- name: Ensure dbus is installed
-  package:
-    name: "{{ nspawn_dbus_package }}"
-    state: present
-    update_cache: "{{ ansible_pkg_mgr in ['apt', 'zypper'] }}"
-  register: dbus_install
-  retries: 5
-  delay: 3
-  until: dbus_install | success
   listen: check connection
 
 - name: Restart new container (first boot only)
   systemd:
     name: "systemd-nspawn@{{ systemd_escape.stdout }}"
     state: "restarted"
+    enabled: true
   register: machinectl_first_boot
   retries: 5
   delay: 2
   until: machinectl_first_boot | success
   delegate_to: "{{ physical_host }}"
-  when:
-    - machinectl_container_image_status.rc != 0
-  notify:
-    - check connection
   listen: Container first boot

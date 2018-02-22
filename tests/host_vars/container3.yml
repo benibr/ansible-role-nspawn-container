@@ -1,6 +1,8 @@
 ---
-ansible_host: 10.100.100.4
+ansible_host: 172.29.100.103
 ansible_become: True
 ansible_user: root
 
 physical_host: localhost
+
+container_tech: nspawn

@@ -13,25 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-container_domain: "openstack.local"
-
-container_default_bind_mounts: []
-container_bind_mounts: []
-
-container_config_overrides: {}
-
-container_network_config_overrides: {}
-
-container_image: "{{ nspawn_map['distro'] }}-{{ nspawn_map['release'] }}-{{ nspawn_map['arch'] }}"
-
+# === systemd-nspawn defaults ==================================================
+# Default networks that will be applied ONLY to nspwan deployments.
 nspawn_networks:
   nspawn_address:
-    # The name of the interface, by default this is a dummy device on a private
-    # network however it could be a bridge or any other interface.
     bridge: "nspawn0"
-    # Optional | Set bool to enable a private device. This will create a bridge
-    #            not connecting to the underlying L2.
-    private_device: true
+    interface: "mv-mv-nspawn0"
+    address: dhcp
 
 # This is a list of items that will be passed into the container as READ-ONLY
 # files or directories. If any of these items are passed into the container
@@ -39,10 +27,86 @@ nspawn_networks:
 # contianer prior to writting the config.
 #  nspawn_read_only_host_bindmount:
 #    - { source: /etc/resolv.conf, dest: /etc/resolv.conf }
-nspawn_read_only_host_bindmount: []
+nspawn_read_only_host_bindmount: "{{ _nspawn_read_only_host_bindmount | default([]) }}"
 
 # This is a list of items that will be passed into the container as a shared
 # bind mount. If any of these items are passed into the container.
 #  nspawn_shared_host_bindmount:
 #    - /etc/apt
-nspawn_shared_host_bindmount: []
+nspawn_shared_host_bindmount: "{{ _nspawn_shared_host_bindmount | default([]) }}"
+
+# Defined CPU architecture map
+nspawn_architecture_mapping:
+  x86_64: amd64
+  ppc64le: ppc64el
+  s390x: s390x
+  armv7l: armhf
+
+# Set the cache map used when creating the container.
+#  nspawn_map:
+#    distro: "$DISTRO_NAME"
+#    arch: "{{ nspawn_architecture_mapping[container_architecture] }}"
+#    release: "{{ hostvars[physical_host]['ansible_distribution_version'] }}"
+nspawn_map: "{{ _nspawn_map | default({}) }}"
+
+# Enable or Disable the use of systemd-resolved. Option is Boolean.
+nspawn_container_enable_resolved: "{{ _nspawn_container_enable_resolved | default(true) }}"
+
+# Enable or Disable config preservation. If this is disabled a new configuration
+# file for the systemd container will be created, even if the container already
+# exists. When this is set to "false" the container will be restarted should the
+# configuration task(s) result in change.
+nspawn_container_preserve_config: true
+
+# Enable or Disable the BTRFS quota system for the "/var/lib/machines" mount
+# point. More information on the BTRFS quota system can be found here:
+#  * https://btrfs.wiki.kernel.org/index.php/Quota_support
+nspawn_host_machine_quota_disabled: false
+
+# Set the default qgroup limits used for file system quotas. The default is
+# "none". See the following documentation for more information:
+#  * https://btrfs.wiki.kernel.org/index.php/Manpage/btrfs-qgroup
+nspawn_host_qgroup_space_limit: none
+nspawn_host_qgroup_compression_limit: none
+
+
+# === General container defaults ===============================================
+# NOTE(cloudnull): These are host specific variables we capture up-front. These
+#                  psuedo variables are used to capture the container host
+#                  information but could be overriden to deploy whatever.
+container_host: "{{ hostvars[inventory_hostname]['physical_host'] | default('localhost') }}"
+container_architecture: "{{ hostvars[container_host]['ansible_architecture'] | lower }}"
+
+# Name of the on-disk image to use for deployment.
+container_image: "{{ nspawn_map['distro'] }}-{{ nspawn_map['release'] }}-{{ nspawn_map['arch'] }}"
+
+# The domain the containers will exist within.
+container_domain: "openstack.local"
+
+# Container Default bind mounts. This option will be merged with the container
+# bind mounts. This option takes a list of files on a host that will be mounted
+# at the exact same path within the container.
+container_default_bind_mounts: []
+
+# Container bind mounts. This option takes a list of files on a host that will
+# be mounted at the exact same path within the container.
+container_bind_mounts: []
+
+# option used to specific specific container config values which will be
+# directly injected into the container service or nspawn config file. This
+# option take Key=Value pairs and can be used to set any desired config options
+# in any section. Review the following link for more details:
+# * https://www.freedesktop.org/software/systemd/man/systemd.nspawn.html
+container_config_overrides: {}
+
+# Default networks that will be applied ALL containerized deployments.
+#  container_networks:
+#    management_address:
+#      address: "{{ ansible_host | default('localhost') }}"
+#      netmask: "255.255.255.0"
+#      bridge: "br-mgmt"
+#      static_routes:
+#        - cidr: 172.29.100.0/24
+#          gateway: 172.29.100.100
+
+container_networks: {}

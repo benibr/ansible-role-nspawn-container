@@ -14,9 +14,9 @@
 # limitations under the License.
 
 _nspawn_map:
-  distro: ubuntu
+  distro: opensuse
   arch: "{{ nspawn_architecture_mapping[container_architecture] }}"
-  release: xenial
+  release: "{{ hostvars[physical_host]['ansible_distribution_version'] }}"
 
 # This is a list of items that will be passed into the container as READ-ONLY
 # files or directories. If any of these items are passed into the container
@@ -32,4 +32,6 @@ _nspawn_shared_host_bindmount:
   - /root
   - /opt
 
-_nspawn_container_enable_resolved: true
+# This version of SUSE does not have access to systemd-resolved. This will need
+# to remained disabled until it does.
+_nspawn_container_enable_resolved: false

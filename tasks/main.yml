@@ -77,17 +77,57 @@
   when:
     - machinectl_image_status.rc != 0
 
+- name: Locate nspawn config
+  stat:
+    path: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
+  register: nspawn_config_exists
+  delegate_to: "{{ physical_host }}"
+  when:
+    - nspawn_systemd_version | int > 219
+
+- name: Slurp existing nspawn config
+  slurp:
+    src: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
+  register: nspawn_config
+  changed_when: false
+  delegate_to: "{{ physical_host }}"
+  when:
+    - nspawn_container_preserve_config | bool
+    - nspawn_systemd_version | int > 219
+    - nspawn_config_exists.stat.exists | bool
+
 - name: Clone the base container image
   command: machinectl clone "{{ container_image }}" "{{ inventory_hostname }}"
   when:
     - machinectl_container_image_status.rc != 0
   register: machinectl_container_clone
-  retries: 5
+  retries: 3
   delay: 2
-  until: machinectl_container_clone | success
+  until: machinectl_container_clone is success
   delegate_to: "{{ physical_host }}"
   notify:
     - Container first boot
+  tags:
+    - skip_ansible_lint
+
+- name: Set the qgroup limits
+  block:
+    - name: Set the qgroup size|compression limits on machines
+      command: "btrfs qgroup limit {{ item }} /var/lib/machines/{{ inventory_hostname }}"
+      changed_when: false
+      delegate_to: "{{ physical_host }}"
+      with_items:
+        - "-e {{ nspawn_host_qgroup_space_limit }}"
+        - "-c {{ nspawn_host_qgroup_compression_limit }}"
+      when:
+        - not nspawn_host_machine_quota_disabled
+  rescue:
+    - name: Notice regarding quota system
+      debug:
+        msg: >-
+          There was an error processing the setup of qgroups. Check the system
+          to ensure they're available otherwise disable the quota system by
+          setting `nspawn_host_machine_quota_disabled` to true.
 
 - name: Container directories
   file:
@@ -99,6 +139,7 @@
     - "/openstack/log/{{ inventory_hostname }}"
     - "/var/lib/machines/{{ inventory_hostname }}/etc/systemd/network"
     - "/var/lib/machines/{{ inventory_hostname }}/etc/systemd/nspawn"
+    - "/var/lib/machines/{{ inventory_hostname }}/var/lib/dbus"
   delegate_to: "{{ physical_host }}"
 
 - name: Container RO bind path cleanup
@@ -127,56 +168,41 @@
 # Check for the existance of an nspawn configuration file. If found slurp it up
 # and use it as the base nspawn config file with the option to config template
 # override.
-- name: Locate nspawn config
-  stat:
-    path: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
-  register: nspawn_config_exists
-  delegate_to: "{{ physical_host }}"
-  when:
-    - nspawn_systemd_version | int > 219
+- name: modern systemd block
+  block:
+    - name: Copy container config (new)
+      config_template:
+        content: "{{ nspawn_config.content | b64decode }}"
+        dest: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+        config_overrides: "{{ container_config_overrides | default({}) }}"
+        config_type: "ini"
+      delegate_to: "{{ physical_host }}"
+      when:
+        - nspawn_container_preserve_config | bool
+        - nspawn_config_exists.stat.exists | bool
 
-- name: slurp existing nspawn config
-  slurp:
-    src: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
-  register: nspawn_config
-  changed_when: false
-  delegate_to: "{{ physical_host }}"
+    # If no nspawn configuration file exists, create a new config file using the
+    # default template.
+    - name: Copy container config (new)
+      config_template:
+        src: templates/container_config.nspawn.j2
+        dest: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+        config_overrides: "{{ container_config_overrides | default({}) }}"
+        config_type: "ini"
+      delegate_to: "{{ physical_host }}"
+      when:
+        - not nspawn_container_preserve_config | bool or
+          not nspawn_config_exists.stat.exists | bool
+      notify:
+        - Container first boot
   when:
     - nspawn_systemd_version | int > 219
-    - nspawn_config_exists.stat is defined
-    - nspawn_config_exists.stat.exists | bool
-
-- name: Copy container config (new)
-  config_template:
-    content: "{{ nspawn_config.content | b64decode }}"
-    dest: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
-    owner: "root"
-    group: "root"
-    mode: "0644"
-    config_overrides: "{{ container_config_overrides | default({}) }}"
-    config_type: "ini"
-  delegate_to: "{{ physical_host }}"
-  when:
-    - nspawn_systemd_version | int > 219
-    - nspawn_config_exists.stat is defined
-    - nspawn_config_exists.stat.exists | bool
-
-# If no nspawn configuration file exists, create a new config file using the
-# default template.
-- name: Copy container config (new)
-  config_template:
-    src: templates/container_config.nspawn.j2
-    dest: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
-    owner: "root"
-    group: "root"
-    mode: "0644"
-    config_overrides: "{{ container_config_overrides | default({}) }}"
-    config_type: "ini"
-  delegate_to: "{{ physical_host }}"
-  when:
-    - nspawn_systemd_version | int > 219
-    - nspawn_config_exists.stat is defined
-    - not nspawn_config_exists.stat.exists | bool
 
 - name: Copy container config (old)
   template:
@@ -189,59 +215,20 @@
   delegate_to: "{{ physical_host }}"
   when:
     - nspawn_systemd_version | int < 220
-
-- name: Copy container interface config
-  config_template:
-    src: container_mv.network.j2
-    dest: "/var/lib/machines/{{ inventory_hostname }}/etc/systemd/network/mv-mv-{{ item.key }}.network"
-    owner: "root"
-    group: "root"
-    mode: "0644"
-    config_overrides: "{{ container_network_config_overrides | default({}) }}"
-    config_type: "ini"
-  with_dict: "{{ container_networks | combine(nspawn_networks) }}"
-  delegate_to: "{{ physical_host }}"
-
-- name: Create localhost config
-  lineinfile:
-    dest: "/var/lib/machines/{{ inventory_hostname }}/etc/hosts"
-    regexp: "^127.0.0.1"
-    line: "127.0.0.1 localhost"
-    owner: "root"
-    group: "root"
-    mode: "0644"
-  remote_user: root
-  delegate_to: "{{ physical_host }}"
-
-- name: Create domain config
-  lineinfile:
-    dest: "/var/lib/machines/{{ inventory_hostname }}/etc/hosts"
-    regexp: "^127.0.1.1"
-    line: "127.0.1.1 {{ inventory_hostname | replace('_', '-') }}.{{ container_domain }} {{ inventory_hostname | replace('_', '-') }}"
-    owner: "root"
-    group: "root"
-    mode: "0644"
-  remote_user: root
-  delegate_to: "{{ physical_host }}"
-
-- name: Create hostname
-  copy:
-    dest: "/var/lib/machines/{{ inventory_hostname }}/etc/hostname"
-    content: |
-      {{ inventory_hostname | replace('_', '-') }}
-    owner: "root"
-    group: "root"
-    mode: "0644"
-  remote_user: root
-  delegate_to: "{{ physical_host }}"
+  notify:
+    - Container first boot
 
 - name: Generate machine-id
   command: "systemd-machine-id-setup --root=/var/lib/machines/{{ inventory_hostname }}"
   args:
     creates: "/var/lib/machines/{{ inventory_hostname }}/etc/machine-id"
+  register: machineid_set
+  retries: 3
+  delay: 2
+  until: machineid_set is success
   delegate_to: "{{ physical_host }}"
-  notify:
-    - Container first boot
+  tags:
+    - skip_ansible_lint
 
 - name: Create dbus machine-id
   copy:
@@ -252,7 +239,7 @@
   remote_user: root
   delegate_to: "{{ physical_host }}"
 
-- name: Start (enable) new container
+- name: Start new container (enable)
   systemd:
     daemon_reload: yes
     name: "systemd-nspawn@{{ systemd_escape.stdout }}"
@@ -261,18 +248,108 @@
   register: machinectl_start
   retries: 5
   delay: 2
-  until: machinectl_start | success
+  until: machinectl_start is success
   delegate_to: "{{ physical_host }}"
   notify:
     - check connection
 
-- name: Restart networkd
-  service:
-    name: systemd-networkd
-    state: restarted
-    enabled: true
+- name: Generate hostname
+  command: >-
+    hostnamectl --machine="{{ inventory_hostname }}" {{ item }} --pretty --static --transient
+  with_items:
+    - "set-hostname {{ inventory_hostname | replace('_', '-') }}.{{ container_domain }}"
+    - "set-location {{ physical_host }}"
+    - "set-chassis container"
+    - "set-deployment {{ container_domain }}"
+    - "set-icon-name container"
+  register: hostnamectl_set
+  retries: 3
+  delay: 2
+  until: hostnamectl_set is success
+  delegate_to: "{{ physical_host }}"
+  tags:
+    - skip_ansible_lint
 
+# This point the container is running. Delegation should no longer be required.
+# ==============================================================================
 - name: Create journal directory
   file:
     path: "/var/log/journal"
     state: "directory"
+
+- name: Run the systemd-networkd role
+  include_role:
+    name: systemd_networkd
+    private: true
+  vars:
+    systemd_interface_cleanup: false
+    systemd_run_networkd: true
+    systemd_resolved_available: "{{ nspawn_container_enable_resolved }}"
+    systemd_resolved:
+      DNS: "{{ hostvars[physical_host]['ansible_mv_' + nspawn_networks['nspawn_address']['bridge']]['ipv4']['address'] }}"
+      Domains: "{{ container_domain }}"
+    systemd_networks: |-
+      {% set _networks = [] %}
+      {% for _, value in (container_networks | combine(nspawn_networks)).items() %}
+      {%   set _network = {'interface': value.interface | default('mv-mv-' + value.bridge.split('br-')[-1])} %}
+      {%   if value.address is defined %}
+      {%     set _ = _network.__setitem__('address', value.address) %}
+      {%     if (value.netmask is defined) and (_network.address != 'dhcp') %}
+      {%       set _ = _network.__setitem__('netmask', value.netmask) %}
+      {%       set prefix = (value.address + '/' + value.netmask) | ipaddr('prefix') %}
+      {%       set _ = _network.__setitem__('address', [value.address + '/' + prefix | string]) %}
+      {%     endif %}
+      {%   endif %}
+      {%   set _ = _network.__setitem__('usedns', (value.usedns | default(true) | bool) | ternary('yes', 'no')) %}
+      {%   set _ = _network.__setitem__('static_routes', value.static_routes | default([])) %}
+      {%   if value.gateway is defined %}
+      {%     set _ = _network.__setitem__('gateway', value.gateway) %}
+      {%   endif %}
+      {%   set _ = _network.__setitem__('mtu', value.mtu | default(1500 | string)) %}
+      {%   set _ = _networks.append(_network) %}
+      {% endfor %}
+      {{ _networks | sort(attribute='interface') }}
+  tags:
+    - network-config
+
+- name: Create resolved link
+  file:
+    src: "/var/run/systemd/resolve/resolv.conf"
+    dest: "/etc/resolv.conf"
+    force: true
+    state: link
+  when:
+    - nspawn_container_enable_resolved | bool
+
+# Some distros do not have access to systemd-resolved. If the option
+# `nspawn_container_enable_resolved` is disabled this will ensure functionality
+# in the absence of modern systemd.
+- name: Legacy resolvers
+  block:
+    - name: Check resolv.conf
+      stat:
+        path: "/etc/resolv.conf"
+      register: nspawn_resolv_conf
+
+    - name: Remove resolv.conf link
+      file:
+        path: "/etc/resolv.conf"
+        state: absent
+      when:
+        - nspawn_resolv_conf.stat.islnk is defined and
+          nspawn_resolv_conf.stat.islnk
+
+    - name: Place resolv.conf
+      copy:
+        content: |
+          nameserver {{ hostvars[physical_host]['ansible_mv_' + nspawn_networks['nspawn_address']['bridge']]['ipv4']['address'] }}
+          search {{ container_domain }}
+        dest: "/etc/resolv.conf"
+  when:
+    - not nspawn_container_enable_resolved | bool
+
+- name: Force all notified handlers now
+  meta: flush_handlers
+
+- name: (RE)Gather facts post setup
+  setup: {}

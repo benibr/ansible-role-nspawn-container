@@ -17,3 +17,5 @@ bridges:
   - "br-mgmt"
 
 ansible_python_interpreter: "/usr/bin/python2"
+
+physical_host: localhost

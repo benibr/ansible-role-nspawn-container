@@ -1,0 +1,143 @@
+---
+# Copyright 2018, Rackspace US, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Test containers
+  hosts: localhost
+  connection: local
+  become: true
+  tasks:
+    # NOTE(cloudnull): This should be revised at a future date.
+    - name: Test intra cluster connectivity
+      command: ping -c 1 8.8.8.8
+      register: machinectl_ping
+      retries: 3
+      delay: 2
+      until: machinectl_ping is success
+      failed_when: false
+      tags:
+        - skip_ansible_lint
+
+    - name: Stop container3
+      command: "machinectl poweroff container3"
+      register: container_stop
+      changed_when: container_stop.rc == 0
+      failed_when: not container_stop.rc in [0, 2]
+      until: container_stop.rc in [0, 2]
+      retries: 3
+      delay: 2
+      tags:
+        - skip_ansible_lint
+
+    - name: Start container3
+      command: "machinectl start container3"
+      register: container_start
+      changed_when: container_start.rc == 0
+      until: container_start is success
+      retries: 3
+      delay: 2
+      tags:
+        - skip_ansible_lint
+
+    - name: Status check container1
+      command: "machinectl status container1"
+      register: container_status
+      changed_when: container_status.rc == 0
+      until: container_status is success
+      retries: 3
+      delay: 2
+      tags:
+        - skip_ansible_lint
+
+    - name: Clone container2
+      command: "machinectl clone container2 test1-container2"
+      register: container_clone
+      changed_when: container_clone.rc == 0
+      until: container_clone is success
+      retries: 3
+      delay: 2
+      tags:
+        - skip_ansible_lint
+
+    - name: Show image test1-container2
+      command: "machinectl show-image test1-container2"
+      register: container_show
+      changed_when: container_show.rc == 0
+      until: container_show is success
+      retries: 3
+      delay: 2
+      tags:
+        - skip_ansible_lint
+
+    - name: Rename image test1-container2
+      command: "machinectl rename test1-container2 test1"
+      register: container_rename
+      changed_when: container_rename.rc == 0
+      until: container_rename is success
+      retries: 3
+      delay: 2
+      tags:
+        - skip_ansible_lint
+
+    - name: Check Status of test1 image
+      command: "machinectl image-status test1"
+      register: container_status
+      changed_when: container_status.rc == 0
+      until: container_status is success
+      retries: 3
+      delay: 2
+      tags:
+        - skip_ansible_lint
+
+    - name: Start test1 container
+      command: "machinectl start test1"
+      register: container_start
+      changed_when: container_start.rc == 0
+      until: container_start is success
+      retries: 3
+      delay: 2
+      tags:
+        - skip_ansible_lint
+
+    - name: Status test1 container
+      command: "machinectl status test1"
+      register: container_status
+      changed_when: container_status.rc == 0
+      until: container_status is success
+      retries: 3
+      delay: 2
+      tags:
+        - skip_ansible_lint
+
+    - name: Poweroff test1 container
+      command: "machinectl poweroff test1"
+      register: container_poweroff
+      changed_when: container_poweroff.rc == 0
+      until: container_poweroff is success
+      retries: 3
+      delay: 2
+      tags:
+        - skip_ansible_lint
+
+    - name: Remove test container images
+      command: "machinectl remove {{ item }}"
+      with_items:
+        - test1
+      register: container_poweroff
+      changed_when: container_poweroff.rc == 0
+      until: container_poweroff is success
+      retries: 3
+      delay: 2
+      tags:
+        - skip_ansible_lint

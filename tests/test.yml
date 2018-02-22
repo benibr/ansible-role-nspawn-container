@@ -1,5 +1,5 @@
 ---
-# Copyright 2015, Rackspace US, Inc.
+# Copyright 2018, Rackspace US, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,11 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Prepare the user ssh keys
-- include: common/test-prepare-keys.yml
+- import_playbook: test-user-setup.yml
 
-# Prepare the host
-- include: common/test-prepare-host.yml
+- import_playbook: test-nspawn-host-setup.yml
 
-# Test container creation
-- include: test-containers-create.yml
+- import_playbook: test-nspawn-containers-create.yml
+
+- import_playbook: test-nspawn-containers.yml

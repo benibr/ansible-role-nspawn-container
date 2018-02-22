@@ -27,11 +27,8 @@ Bind={{ bind }}:{{ bind }}
 {% set _ = container_networks.update(nspawn_networks) %}
 {% for key, value in container_networks.items() %}
 {%   if value.bridge is defined %}
-{%     set macvlan = 'mv-' + value.bridge.split('br-')[-1] %}
-{%   else %}
-{%     set macvlan = 'mv-' + key %}
+{%     set _ = macvlans.append('mv-' + value.bridge.split('br-')[-1]) %}
 {%   endif %}
-{%   set _ = macvlans.append(macvlan) %}
 {% endfor %}
 {% if macvlans | length > 0 %}
 Private=yes

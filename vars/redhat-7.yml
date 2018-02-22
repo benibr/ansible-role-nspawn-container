@@ -13,25 +13,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-nspawn_map:
+_nspawn_map:
   distro: centos
-  arch: "{{ nspawn_architecture_mapping[ansible_container_architecture] }}"
+  arch: "{{ nspawn_architecture_mapping[container_architecture] }}"
   release: 7
 
 # This is a list of items that will be passed into the container as READ-ONLY
 # files or directories. If any of these items are passed into the container
 # the container create process will ensure the file is not present within the
 # contianer prior to writting the config.
-nspawn_read_only_host_bindmount:
+_nspawn_read_only_host_bindmount:
   - { source: /etc/environment, dest: /etc/environment }
-  - { source: /etc/localtime, dest: /etc/localtime }
 
 # This is a list of items that will be passed into the container as a shared
 # bind mount. If any of these items are passed into the container.
-nspawn_shared_host_bindmount:
-  - /etc/yum
+_nspawn_shared_host_bindmount:
+  - /etc/localtime
   - /root
   - /opt
 
-nspawn_dbus_package:
-  - dbus
+_nspawn_container_enable_resolved: true

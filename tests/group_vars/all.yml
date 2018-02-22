@@ -1,5 +1,5 @@
 ---
-# Copyright 2014, Rackspace US, Inc.
+# Copyright 2018, Rackspace US, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,25 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-galaxy_info:
-  author: rcbops
-  description: Create an nspawn container
-  company: Rackspace
-  license: Apache2
-  min_ansible_version: 1.9.4
-  platforms:
-    - name: Ubuntu
-      versions:
-        - xenial
-    - name: EL
-      versions:
-        - 7
-  categories:
-    - cloud
-    - nspawn
-    - container
-    - python
-    - development
-    - openstack
-dependencies:
-  - plugins
+container_networks:
+  management_address:
+    address: "{{ ansible_host | default('localhost') }}"
+    netmask: "255.255.255.0"
+    bridge: "br-mgmt"
+    static_routes:
+      - cidr: 172.29.100.0/24
+        gateway: 172.29.100.100
+
+bridges:
+  - name: "br-mgmt"
+    ip_addr: "172.29.100.100"
+    netmask: "255.255.255.0"
