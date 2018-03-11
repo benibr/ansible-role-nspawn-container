@@ -142,8 +142,9 @@
   changed_when: false
   delegate_to: "{{ physical_host }}"
   when:
-    - nspawn_config_exists.stat.exists | bool
     - nspawn_systemd_version | int > 219
+    - nspawn_config_exists.stat is defined
+    - nspawn_config_exists.stat.exists | bool
 
 - name: Copy container config (new)
   config_template:
@@ -156,8 +157,9 @@
     config_type: "ini"
   delegate_to: "{{ physical_host }}"
   when:
-    - nspawn_config_exists.stat.exists | bool
     - nspawn_systemd_version | int > 219
+    - nspawn_config_exists.stat is defined
+    - nspawn_config_exists.stat.exists | bool
 
 # If no nspawn configuration file exists, create a new config file using the
 # default template.
@@ -172,8 +174,9 @@
     config_type: "ini"
   delegate_to: "{{ physical_host }}"
   when:
-    - not nspawn_config_exists.stat.exists | bool
     - nspawn_systemd_version | int > 219
+    - nspawn_config_exists.stat is defined
+    - not nspawn_config_exists.stat.exists | bool
 
 - name: Copy container config (old)
   template:
