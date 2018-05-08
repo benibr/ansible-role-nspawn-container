@@ -16,15 +16,17 @@
     check:
       jobs:
         - openstack-ansible-linters
-        - openstack-ansible-nspawn-ubuntu-xenial
         - openstack-ansible-nspawn-centos-7
         - openstack-ansible-nspawn-opensuse-423
+        - openstack-ansible-nspawn-ubuntu-bionic
+        - openstack-ansible-nspawn-ubuntu-xenial
     experimental:
       jobs:
         - openstack-ansible-integrated-deploy-aio
     gate:
       jobs:
         - openstack-ansible-linters
-        - openstack-ansible-nspawn-ubuntu-xenial
         - openstack-ansible-nspawn-centos-7
         - openstack-ansible-nspawn-opensuse-423
+        - openstack-ansible-nspawn-ubuntu-bionic
+        - openstack-ansible-nspawn-ubuntu-xenial
