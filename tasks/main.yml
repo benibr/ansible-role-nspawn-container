@@ -13,6 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+- name: Gather physical host facts
+  setup:
+    gather_subset: "network,virtual"
+  delegate_to: "{{ physical_host }}"
+  delegate_facts: true
+  run_once: true
+
 - name: Pull systemd version
   command: "systemctl --version"
   changed_when: false
