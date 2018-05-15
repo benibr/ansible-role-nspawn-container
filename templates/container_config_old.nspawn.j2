@@ -22,8 +22,6 @@
 {% for key, value in container_networks.items() %}
 {%   if value.bridge is defined %}
 {%     set macvlan = 'mv-' + value.bridge.split('br-')[-1] %}
-{%   else %}
-{%     set macvlan = 'mv-' + key %}
 {%   endif %}
 {%   if macvlan not in macvlans %}
 {%     set _ = macvlans.append(macvlan) %}

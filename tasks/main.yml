@@ -298,7 +298,11 @@
     systemd_networks: |-
       {% set _networks = [] %}
       {% for _, value in (container_networks | combine(nspawn_networks)).items() %}
-      {%   set _network = {'interface': value.interface | default('mv-mv-' + value.bridge.split('br-')[-1])} %}
+      {%   if value.bridge is defined %}
+      {%     set _network = {'interface': 'mv-mv-' + value.bridge.split('br-')[-1]} %}
+      {%   else %}
+      {%     set _network = {'interface': value.interface} %}
+      {%   endif %}
       {%   if value.address is defined %}
       {%     set _ = _network.__setitem__('address', value.address) %}
       {%     if (value.netmask is defined) and (_network.address != 'dhcp') %}

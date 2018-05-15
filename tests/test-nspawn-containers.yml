@@ -18,14 +18,25 @@
   connection: local
   become: true
   tasks:
-    # NOTE(cloudnull): This should be revised at a future date.
-    - name: Test intra cluster connectivity
-      command: ping -c 1 8.8.8.8
+    - name: Test connectivity to external address
+      command: ping -c 1 git.openstack.org
       register: machinectl_ping
       retries: 3
       delay: 2
       until: machinectl_ping is success
-      failed_when: false
+      delegate_to: "{{ item }}"
+      with_items: "{{ groups['all_containers'] }}"
+      tags:
+        - skip_ansible_lint
+
+    - name: Test connectivity to internal address
+      command: ping -c 1 172.29.100.101
+      register: machinectl_ping
+      retries: 3
+      delay: 2
+      until: machinectl_ping is success
+      delegate_to: "{{ item }}"
+      with_items: "{{ groups['all_containers'] }}"
       tags:
         - skip_ansible_lint
 
