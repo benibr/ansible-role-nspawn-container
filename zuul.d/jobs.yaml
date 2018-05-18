@@ -29,6 +29,6 @@
     nodeset: centos-7
 
 - job:
-   name: openstack-ansible-nspawn-opensuse-423
-   parent: openstack-ansible-functional
-   nodeset: opensuse-423
+    name: openstack-ansible-nspawn-opensuse-423
+    parent: openstack-ansible-functional
+    nodeset: opensuse-423
