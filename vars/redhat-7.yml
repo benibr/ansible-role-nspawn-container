@@ -31,5 +31,3 @@ _nspawn_shared_host_bindmount:
   - /etc/localtime
   - /root
   - /opt
-
-_nspawn_container_enable_resolved: true
