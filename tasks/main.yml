@@ -89,8 +89,6 @@
     path: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
   register: nspawn_config_exists
   delegate_to: "{{ physical_host }}"
-  when:
-    - nspawn_systemd_version | int > 219
 
 - name: Slurp existing nspawn config
   slurp:
@@ -103,6 +101,68 @@
     - nspawn_systemd_version | int > 219
     - nspawn_config_exists.stat.exists | bool
 
+# Check for the existance of an nspawn configuration file. If found slurp it up
+# and use it as the base nspawn config file with the option to config template
+# override.
+- name: Copy container config (existing)
+  config_template:
+    content: "{{ nspawn_config.content | b64decode }}"
+    dest: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+    config_overrides: "{{ container_config_overrides | default({}) }}"
+    config_type: "ini"
+  register: container_config_existing
+  delegate_to: "{{ physical_host }}"
+  when:
+    - nspawn_container_preserve_config | bool
+    - nspawn_config_exists.stat.exists | bool
+    - nspawn_systemd_version | int > 219
+
+# If no nspawn configuration file exists, create a new config file using the
+# default template.
+- name: Copy container config (new)
+  config_template:
+    src: templates/container_config.nspawn.j2
+    dest: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+    config_overrides: "{{ container_config_overrides | default({}) }}"
+    config_type: "ini"
+  register: container_config_new
+  delegate_to: "{{ physical_host }}"
+  when:
+    - not nspawn_container_preserve_config | bool or
+      not nspawn_config_exists.stat.exists | bool
+    - nspawn_systemd_version | int > 219
+
+- name: Copy container config (old)
+  template:
+    src: templates/container_config_old.nspawn.j2
+    dest: "/etc/systemd/system/systemd-nspawn@{{ systemd_escape.stdout }}.service"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  register: container_config_old
+  delegate_to: "{{ physical_host }}"
+  when:
+    - nspawn_systemd_version | int < 220
+
+- name: Notice existing container config changed
+  debug:
+    msg: >-
+      The existing container config has changed. While this change has been
+      noticed, no restart has been performed. By not restarting the container
+      the system is preserving the state of the environment by not causing
+      unexpected downtime. For these changes to go into effect the container
+      must be restarted. This can be done using the following command,
+      `machinectl [poweroff|start] {{ inventory_hostname }}`. To disable the
+      configation saving set `nspawn_container_preserve_config` to false.
+  when:
+    - container_config_existing is changed
+
 - name: Clone the base container image
   command: machinectl clone "{{ container_image }}" "{{ inventory_hostname }}"
   when:
@@ -112,8 +172,6 @@
   delay: 2
   until: machinectl_container_clone is success
   delegate_to: "{{ physical_host }}"
-  notify:
-    - Container first boot
   tags:
     - skip_ansible_lint
 
@@ -144,6 +202,7 @@
     - "/openstack/{{ inventory_hostname }}"
     - "/openstack/backup/{{ inventory_hostname }}"
     - "/openstack/log/{{ inventory_hostname }}"
+    - "/var/lib/machines/{{ inventory_hostname }}/var/log/journal"
     - "/var/lib/machines/{{ inventory_hostname }}/etc/systemd/network"
     - "/var/lib/machines/{{ inventory_hostname }}/etc/systemd/nspawn"
     - "/var/lib/machines/{{ inventory_hostname }}/var/lib/dbus"
@@ -172,59 +231,6 @@
   with_items: "{{ container_default_bind_mounts | union(container_bind_mounts | default([])) }}"
   delegate_to: "{{ physical_host }}"
 
-# Check for the existance of an nspawn configuration file. If found slurp it up
-# and use it as the base nspawn config file with the option to config template
-# override.
-- name: modern systemd block
-  block:
-    - name: Copy container config (new)
-      config_template:
-        content: "{{ nspawn_config.content | b64decode }}"
-        dest: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
-        owner: "root"
-        group: "root"
-        mode: "0644"
-        config_overrides: "{{ container_config_overrides | default({}) }}"
-        config_type: "ini"
-      delegate_to: "{{ physical_host }}"
-      when:
-        - nspawn_container_preserve_config | bool
-        - nspawn_config_exists.stat.exists | bool
-
-    # If no nspawn configuration file exists, create a new config file using the
-    # default template.
-    - name: Copy container config (new)
-      config_template:
-        src: templates/container_config.nspawn.j2
-        dest: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
-        owner: "root"
-        group: "root"
-        mode: "0644"
-        config_overrides: "{{ container_config_overrides | default({}) }}"
-        config_type: "ini"
-      delegate_to: "{{ physical_host }}"
-      when:
-        - not nspawn_container_preserve_config | bool or
-          not nspawn_config_exists.stat.exists | bool
-      notify:
-        - Container first boot
-  when:
-    - nspawn_systemd_version | int > 219
-
-- name: Copy container config (old)
-  template:
-    src: templates/container_config_old.nspawn.j2
-    dest: "/etc/systemd/system/systemd-nspawn@{{ systemd_escape.stdout }}.service"
-    owner: "root"
-    group: "root"
-    mode: "0644"
-  register: container_config_old
-  delegate_to: "{{ physical_host }}"
-  when:
-    - nspawn_systemd_version | int < 220
-  notify:
-    - Container first boot
-
 - name: Generate machine-id
   command: "systemd-machine-id-setup --root=/var/lib/machines/{{ inventory_hostname }}"
   args:
@@ -246,19 +252,57 @@
   remote_user: root
   delegate_to: "{{ physical_host }}"
 
+- name: Create resolved link
+  file:
+    src: "/var/run/systemd/resolve/resolv.conf"
+    dest: "/var/lib/machines/{{ inventory_hostname }}/etc/resolv.conf"
+    force: true
+    state: link
+  delegate_to: "{{ physical_host }}"
+  when:
+    - nspawn_container_enable_resolved | bool
+
+# Some distros do not have access to systemd-resolved. If the option
+# `nspawn_container_enable_resolved` is disabled this will ensure functionality
+# in the absence of modern systemd.
+- name: Legacy resolvers
+  block:
+    - name: Check resolv.conf
+      stat:
+        path: "/var/lib/machines/{{ inventory_hostname }}/etc/resolv.conf"
+      delegate_to: "{{ physical_host }}"
+      register: nspawn_resolv_conf
+
+    - name: Remove resolv.conf link
+      file:
+        path: "/var/lib/machines/{{ inventory_hostname }}/etc/resolv.conf"
+        state: absent
+      delegate_to: "{{ physical_host }}"
+      when:
+        - nspawn_resolv_conf.stat.islnk is defined and
+          nspawn_resolv_conf.stat.islnk
+
+    - name: Place resolv.conf
+      copy:
+        content: |
+          nameserver {{ hostvars[physical_host]['ansible_mv_' + nspawn_networks['nspawn_address']['bridge']]['ipv4']['address'] }}
+          search {{ container_domain }}
+        dest: "/var/lib/machines/{{ inventory_hostname }}/etc/resolv.conf"
+      delegate_to: "{{ physical_host }}"
+  when:
+    - not nspawn_container_enable_resolved | bool
+
 - name: Start new container (enable)
   systemd:
     daemon_reload: yes
     name: "systemd-nspawn@{{ systemd_escape.stdout }}"
-    state: "{{ (container_config_old | changed | default(false)) | ternary('restarted', 'started') }}"
+    state: "{{ ((machinectl_container_clone is changed or container_config_new is changed or container_config_old is changed) | default(false)) | ternary('restarted', 'started') }}"
     enabled: "{{ (nspawn_systemd_version | int > 219) | ternary('true', 'false') }}"
   register: machinectl_start
   retries: 5
   delay: 2
   until: machinectl_start is success
   delegate_to: "{{ physical_host }}"
-  notify:
-    - check connection
 
 - name: Generate hostname
   command: >-
@@ -279,11 +323,6 @@
 
 # This point the container is running. Delegation should no longer be required.
 # ==============================================================================
-- name: Create journal directory
-  file:
-    path: "/var/log/journal"
-    state: "directory"
-
 - name: Run the systemd-networkd role
   include_role:
     name: systemd_networkd
@@ -322,42 +361,6 @@
       {{ _networks | sort(attribute='interface') }}
   tags:
     - network-config
-
-- name: Create resolved link
-  file:
-    src: "/var/run/systemd/resolve/resolv.conf"
-    dest: "/etc/resolv.conf"
-    force: true
-    state: link
-  when:
-    - nspawn_container_enable_resolved | bool
-
-# Some distros do not have access to systemd-resolved. If the option
-# `nspawn_container_enable_resolved` is disabled this will ensure functionality
-# in the absence of modern systemd.
-- name: Legacy resolvers
-  block:
-    - name: Check resolv.conf
-      stat:
-        path: "/etc/resolv.conf"
-      register: nspawn_resolv_conf
-
-    - name: Remove resolv.conf link
-      file:
-        path: "/etc/resolv.conf"
-        state: absent
-      when:
-        - nspawn_resolv_conf.stat.islnk is defined and
-          nspawn_resolv_conf.stat.islnk
-
-    - name: Place resolv.conf
-      copy:
-        content: |
-          nameserver {{ hostvars[physical_host]['ansible_mv_' + nspawn_networks['nspawn_address']['bridge']]['ipv4']['address'] }}
-          search {{ container_domain }}
-        dest: "/etc/resolv.conf"
-  when:
-    - not nspawn_container_enable_resolved | bool
 
 - name: Force all notified handlers now
   meta: flush_handlers

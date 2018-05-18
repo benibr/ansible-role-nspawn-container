@@ -6,3 +6,9 @@ ansible_user: root
 physical_host: localhost
 
 container_tech: nspawn
+
+container_networks:
+  management_address:
+    address: "{{ ansible_host }}"
+    netmask: "255.255.255.0"
+    bridge: "br-mgmt"

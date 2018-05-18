@@ -19,3 +19,9 @@ bridges:
 ansible_python_interpreter: "/usr/bin/python2"
 
 physical_host: localhost
+
+container_networks:
+  management_address:
+    address: "172.29.236.100"
+    netmask: "255.255.255.0"
+    bridge: "br-mgmt"

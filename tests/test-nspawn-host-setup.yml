@@ -26,18 +26,6 @@
       debug:
         var: hostvars
 
-    - name: Create test network service
-      template:
-        src: "templates/test-networks.service.j2"
-        dest: "/etc/systemd/system/00-test-networks.service"
-
-    - name: Enable test network service
-      systemd:
-        name: "00-test-networks.service"
-        state: "started"
-        enabled: true
-        daemon_reload: true
-
     - name: Ensure root ssh key
       user:
         name: "{{ ansible_user_id | default('root') }}"
@@ -72,8 +60,6 @@
         - "iptables -P INPUT ACCEPT"
         - "iptables -P FORWARD ACCEPT"
         - "iptables -P OUTPUT ACCEPT"
-        - "iptables -A POSTROUTING -t mangle -p tcp -j CHECKSUM --checksum-fill"
-        - "iptables -t nat -A POSTROUTING -o {{ ansible_default_ipv4.interface }} -j MASQUERADE"
       tags:
         - skip_ansible_lint
 
@@ -87,6 +73,57 @@
       with_items:
         - "91.189.91.21 images.linuxcontainers.org us.images.linuxcontainers.org"
         - "91.189.88.37 images.linuxcontainers.org uk.images.linuxcontainers.org"
+
+    - name: Run the systemd-networkd role
+      include_role:
+        name: systemd_networkd
+        private: true
+      vars:
+        systemd_interface_cleanup: true
+        systemd_run_networkd: true
+        systemd_netdevs:
+          - NetDev:
+              Name: dummy0
+              Kind: dummy
+          - NetDev:
+              Name: br-mgmt
+              Kind: bridge
+        systemd_networks:
+          - interface: "dummy0"
+            bridge: "br-mgmt"
+          - interface: "br-mgmt"
+            address: "172.29.236.100"
+            netmask: "255.255.255.0"
+      tags:
+        - network-config
+
+    - name: Run the systemd service role
+      include_role:
+        name: systemd_service
+        private: true
+      vars:
+        systemd_services:
+          - service_name: "networking-post-up"
+            config_overrides:
+              Unit:
+                Description: networking-post-up
+                After: network-online.target
+                Wants: network-online.target
+              Service:
+                RemainAfterExit: yes
+            service_type: oneshot
+            execstarts:
+              - "-/sbin/iptables -A POSTROUTING -t mangle -p tcp --dport 22 -j CHECKSUM --checksum-fill"
+              - "-/sbin/iptables -t nat -A POSTROUTING -o {{ ansible_default_ipv4.interface }} -j MASQUERADE"
+              - "-/sbin/ethtool -K br-mgmt gso off sg off tso off tx off"
+            execstops:
+              - "/sbin/iptables -D POSTROUTING -t mangle -p tcp --dport 22 -j CHECKSUM --checksum-fill"
+              - "/sbin/iptables -t nat -D POSTROUTING -o {{ ansible_default_ipv4.interface }} -j MASQUERADE"
+            enabled: yes
+            state: started
+        systemd_tempd_prefix: openstack
+      tags:
+        - network-config
 
   roles:
     - role: "nspawn_hosts"
