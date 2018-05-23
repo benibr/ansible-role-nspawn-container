@@ -73,7 +73,7 @@ nspawn_host_qgroup_compression_limit: none
 # === General container defaults ===============================================
 # NOTE(cloudnull): These are host specific variables we capture up-front. These
 #                  psuedo variables are used to capture the container host
-#                  information but could be overriden to deploy whatever.
+#                  information but could be overridden to deploy whatever.
 container_host: "{{ hostvars[inventory_hostname]['physical_host'] | default('localhost') }}"
 container_architecture: "{{ hostvars[container_host]['ansible_architecture'] | lower }}"
 
