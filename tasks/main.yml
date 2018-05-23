@@ -336,7 +336,7 @@
       Domains: "{{ container_domain }}"
     systemd_networks: |-
       {% set _networks = [] %}
-      {% for _, value in (container_networks | combine(nspawn_networks)).items() %}
+      {% for _, value in nspawn_combined_networks.items() %}
       {%   if value.bridge is defined %}
       {%     set _network = {'interface': 'mv-mv-' + value.bridge.split('br-')[-1]} %}
       {%   else %}
