@@ -86,13 +86,24 @@
               Name: dummy0
               Kind: dummy
           - NetDev:
+              Name: dummy1
+              Kind: dummy
+          - NetDev:
               Name: br-mgmt
+              Kind: bridge
+          - NetDev:
+              Name: br-extra
               Kind: bridge
         systemd_networks:
           - interface: "dummy0"
             bridge: "br-mgmt"
           - interface: "br-mgmt"
             address: "172.29.236.100"
+            netmask: "255.255.255.0"
+          - interface: "dummy1"
+            bridge: "br-extra"
+          - interface: "br-extra"
+            address: "172.29.254.100"
             netmask: "255.255.255.0"
       tags:
         - network-config
