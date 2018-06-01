@@ -39,3 +39,13 @@
       with_items: "{{ groups['all_containers'] }}"
       tags:
         - skip_ansible_lint
+
+    - name: Test connectivity to container specific extra address
+      command: ping -c 1 172.29.254.100
+      register: machinectl_ping
+      retries: 3
+      delay: 5
+      until: machinectl_ping is success
+      delegate_to: container3
+      tags:
+        - skip_ansible_lint

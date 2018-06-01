@@ -12,3 +12,9 @@ container_networks:
     address: "{{ ansible_host }}"
     netmask: "255.255.255.0"
     bridge: "br-mgmt"
+
+container_extra_networks:
+  extra_address:
+    address: "172.29.254.103"
+    netmask: "255.255.255.0"
+    bridge: "br-extra"
