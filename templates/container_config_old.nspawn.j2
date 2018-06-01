@@ -18,8 +18,7 @@
 {%   endfor %}
 {% endif %}
 {% set macvlans = [] %}
-{% set _ = container_networks.update(nspawn_networks) %}
-{% for key, value in container_networks.items() %}
+{% for key, value in nspawn_combined_networks.items() %}
 {%   if value.bridge is defined %}
 {%     set macvlan = 'mv-' + value.bridge.split('br-')[-1] %}
 {%   endif %}
