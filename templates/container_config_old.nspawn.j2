@@ -7,7 +7,7 @@
 {% set _ = cli_switches.append('--bind=/openstack/backup/' + inventory_hostname + ':/var/backup') %}
 {% set _ = cli_switches.append('--bind=/openstack/log/' + inventory_hostname + ':/var/log') %}
 {% for bind in container_default_bind_mounts | union(container_bind_mounts | default([])) %}
-{%   set _ = cli_switches.append('--bind=' + bind.mount_path + ':' + bind.bind_dir_path) %}
+{%   set _ = cli_switches.append('--bind=' + bind.mount_path + ':/' + bind.bind_dir_path) %}
 {% endfor %}
 {% for bind in nspawn_shared_host_bindmount %}
 {%   set _ = cli_switches.append('--bind=' + bind + ':' + bind) %}

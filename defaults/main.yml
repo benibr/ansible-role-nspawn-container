@@ -33,7 +33,10 @@ nspawn_read_only_host_bindmount: "{{ _nspawn_read_only_host_bindmount | default(
 # bind mount. If any of these items are passed into the container.
 #  nspawn_shared_host_bindmount:
 #    - /etc/apt
-nspawn_shared_host_bindmount: "{{ _nspawn_shared_host_bindmount | default([]) }}"
+nspawn_shared_host_bindmount:
+  - /etc/localtime
+  - /root
+  - /opt
 
 # Defined CPU architecture map
 nspawn_architecture_mapping:
@@ -84,12 +87,18 @@ container_image: "{{ nspawn_map['distro'] }}-{{ nspawn_map['release'] }}-{{ nspa
 container_domain: "openstack.local"
 
 # Container Default bind mounts. This option will be merged with the container
-# bind mounts. This option takes a list of files on a host that will be mounted
-# at the exact same path within the container.
-container_default_bind_mounts: []
+# bind mounts. This option takes a list of files with `mount_path` defining the
+# path on the host and `bind_dir_path` which defines the intra-container path
+# and is relative, it assumes that it starts with a "/".
+container_default_bind_mounts:
+  - mount_path: "/openstack/backup/{{ inventory_hostname }}"
+    bind_dir_path: "var/backup"
 
 # Container bind mounts. This option takes a list of files on a host that will
-# be mounted at the exact same path within the container.
+# be mounted at the exact same path within the container. This option takes a
+# list of files with `mount_path` defining the path on the host and
+# `bind_dir_path` which defines the intra-container path which is a relative
+# and starts at "/".
 container_bind_mounts: []
 
 # option used to specific specific container config values which will be

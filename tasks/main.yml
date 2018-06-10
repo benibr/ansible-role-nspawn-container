@@ -353,7 +353,6 @@
     name: systemd_networkd
     private: true
   vars:
-    systemd_interface_cleanup: true
     systemd_run_networkd: true
     systemd_resolved_available: "{{ nspawn_container_enable_resolved }}"
     systemd_resolved:
