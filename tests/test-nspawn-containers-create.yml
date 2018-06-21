@@ -41,7 +41,7 @@
       register: machinectl_poweroff
       retries: 3
       delay: 2
-      until: machinectl_remove is success
+      until: machinectl_poweroff is success
       delegate_to: "{{ physical_host }}"
       failed_when: false
       when:
