@@ -14,8 +14,8 @@
 # limitations under the License.
 
 - name: Test containers
-  hosts: localhost
-  connection: local
+  hosts: all_containers
+  gather_facts: false
   become: true
   tasks:
     - name: Test connectivity to container gateway
@@ -24,8 +24,6 @@
       retries: 3
       delay: 5
       until: machinectl_ping is success
-      delegate_to: "{{ item }}"
-      with_items: "{{ groups['all_containers'] }}"
       tags:
         - skip_ansible_lint
 
@@ -35,8 +33,6 @@
       retries: 3
       delay: 5
       until: machinectl_ping is success
-      delegate_to: "{{ item }}"
-      with_items: "{{ groups['all_containers'] }}"
       tags:
         - skip_ansible_lint
 
@@ -46,6 +42,5 @@
       retries: 3
       delay: 5
       until: machinectl_ping is success
-      delegate_to: container3
       tags:
         - skip_ansible_lint
