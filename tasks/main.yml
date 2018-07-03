@@ -29,6 +29,31 @@
     - skip_ansible_lint
     - always
 
+- name: Pull filesystem information
+  command: "btrfs filesystem show --raw /var/lib/machines"
+  changed_when: false
+  register: filesystem
+  delegate_to: "{{ physical_host }}"
+  tags:
+    - skip_ansible_lint
+    - always
+
+- name: Set qgroup space fact
+  set_fact:
+    nspawn_host_qgroup_space_limit: "{{ filesystem.stdout.strip().splitlines()[-1].split()[3] }}"
+  when:
+    - nspawn_host_qgroup_space_limit == 'none'
+  tags:
+    - always
+
+- name: Set qgroup compression fact
+  set_fact:
+    nspawn_host_qgroup_compression_limit: "{{ filesystem.stdout.strip().splitlines()[-1].split()[3] }}"
+  when:
+    - nspawn_host_qgroup_compression_limit == 'none'
+  tags:
+    - always
+
 - name: Set facts
   set_fact:
     nspawn_systemd_version: "{{ systemd_version.stdout_lines[0].split()[-1] }}"
