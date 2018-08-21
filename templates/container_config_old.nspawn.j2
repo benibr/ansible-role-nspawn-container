@@ -19,7 +19,9 @@
 {% endif %}
 {% set macvlans = [] %}
 {% for key, value in nspawn_combined_networks.items() %}
-{%   if value.bridge is defined %}
+{%   if value.interface is defined %}
+{%     set macvlan = value.interface %}
+{%   else %}
 {%     set macvlan = 'mv-' + value.bridge.split('br-')[-1] %}
 {%   endif %}
 {%   if macvlan not in macvlans %}
