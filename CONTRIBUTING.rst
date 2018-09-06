@@ -84,7 +84,7 @@ When submitting or working on an issue, please ensure the following criteria are
     * Include historical information on how the problem was identified.
     * Include any relevant logs.
     * If the issue is a bug that needs fixing in a branch other than Master, add the
-      ‘backport potential’ tag TO THE ISSUE (not the PR).
+      'backport potential' tag TO THE ISSUE (not the PR).
     * The provided information should be totally self-contained. External access to web
       services/sites should not be needed.
     * If the issue is needed for a hotfix release, add the 'expedite' label.
