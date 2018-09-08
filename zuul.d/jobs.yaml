@@ -16,7 +16,7 @@
 - job:
     name: openstack-ansible-nspawn-ubuntu-bionic
     parent: openstack-ansible-functional
-    nodeset: ubuntu-xenial
+    nodeset: ubuntu-bionic
 
 - job:
     name: openstack-ansible-nspawn-ubuntu-xenial
