@@ -17,17 +17,3 @@ _nspawn_map:
   distro: ubuntu
   arch: "{{ nspawn_architecture_mapping[container_architecture] }}"
   release: bionic
-
-# This is a list of items that will be passed into the container as READ-ONLY
-# files or directories. If any of these items are passed into the container
-# the container create process will ensure the file is not present within the
-# contianer prior to writting the config.
-_nspawn_read_only_host_bindmount:
-  - { source: /etc/environment, dest: /etc/environment }
-
-# This is a list of items that will be passed into the container as a shared
-# bind mount. If any of these items are passed into the container.
-_nspawn_shared_host_bindmount:
-  - /etc/localtime
-  - /root
-  - /opt

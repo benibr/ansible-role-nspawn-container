@@ -16,7 +16,7 @@ BindReadOnly={{ ro_bind.source }}:{{ ro_bind.dest }}
 Bind=/openstack/backup/{{ inventory_hostname }}:/var/backup
 Bind=/openstack/log/{{ inventory_hostname }}:/var/log
 {% for bind in container_default_bind_mounts | union(container_bind_mounts | default([])) %}
-Bind={{ bind.mount_path }}:{{ bind.bind_dir_path }}
+Bind={{ bind.mount_path }}:/{{ bind.bind_dir_path }}
 {% endfor %}
 {% for bind in nspawn_shared_host_bindmount %}
 Bind={{ bind }}:{{ bind }}
