@@ -26,10 +26,12 @@ container_networks:
     address: "172.29.236.100"
     netmask: "255.255.255.0"
     bridge: "br-mgmt"
+    host_only: true
 
 container_extra_networks:
-   extra_address:
-     address: "172.29.254.100"
-     netmask: "255.255.255.0"
-     private_device: true
-     bridge: "br-extra"
+  extra_address:
+    address: "172.29.254.100"
+    netmask: "255.255.255.0"
+    private_device: true
+    bridge: "br-extra"
+    host_only: true

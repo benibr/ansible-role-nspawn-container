@@ -14,4 +14,4 @@
 # limitations under the License.
 
 # A combined hash of all networks to be used within a deployment.
-nspawn_combined_networks: "{{ container_networks | combine(container_extra_networks | default({})) | combine(nspawn_networks) }}"
+nspawn_combined_networks: "{{ nspawn_networks | combine(container_extra_networks | default({})) | combine(container_networks) }}"
