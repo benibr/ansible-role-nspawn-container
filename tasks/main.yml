@@ -353,34 +353,39 @@
     name: systemd_networkd
     private: true
   vars:
+    systemd_networkd_prefix: "nspawn_container"
     systemd_run_networkd: true
+    systemd_interface_cleanup: true
     systemd_resolved_available: "{{ nspawn_container_enable_resolved }}"
     systemd_resolved:
       DNS: "{{ hostvars[physical_host]['ansible_mv_' + nspawn_networks['nspawn_address']['bridge']]['ipv4']['address'] }}"
       Domains: "{{ container_domain }}"
     systemd_networks: |-
+      {% set seen_networks = [] %}
       {% set _networks = [] %}
+      {# All nspawn_networks and container_extra_networks will be iterated over. #}
+      {# If a device is found, a networkd config will be generated for it. #}
       {% for _, value in nspawn_combined_networks.items() %}
-      {%   if value.interface is defined %}
-      {%     set _network = {'interface': 'mv-' + value.interface} %}
-      {%   else %}
-      {%     set _network = {'interface': 'mv-mv-' + value.bridge.split('br-')[-1]} %}
-      {%   endif %}
-      {%   if value.address is defined %}
-      {%     set _ = _network.__setitem__('address', value.address) %}
-      {%     if (value.netmask is defined) and (_network.address != 'dhcp') %}
-      {%       set _ = _network.__setitem__('netmask', value.netmask) %}
-      {%       set prefix = (value.address + '/' + value.netmask) | ipaddr('prefix') %}
-      {%       set _ = _network.__setitem__('address', [value.address + '/' + prefix | string]) %}
+      {%   set netname = value.interface | default('mv-' + value.bridge.split('br-')[-1]) %}
+      {%   set _network = {'interface': 'mv-' + netname} %}
+      {%   if netname not in seen_networks %}
+      {%     set _ = seen_networks.append(netname) %}
+      {%     if value.address is defined %}
+      {%         set _ = _network.__setitem__('address', value.address) %}
+      {%         if (value.netmask is defined) and (_network.address != 'dhcp') %}
+      {%           set _ = _network.__setitem__('netmask', value.netmask) %}
+      {%           set prefix = (value.address + '/' + value.netmask) | ipaddr('prefix') %}
+      {%           set _ = _network.__setitem__('address', [value.address + '/' + prefix | string]) %}
+      {%         endif %}
       {%     endif %}
+      {%     set _ = _network.__setitem__('usedns', (value.usedns | default(true) | bool) | ternary('yes', 'no')) %}
+      {%     set _ = _network.__setitem__('static_routes', value.static_routes | default([])) %}
+      {%     if value.gateway is defined %}
+      {%       set _ = _network.__setitem__('gateway', value.gateway) %}
+      {%     endif %}
+      {%     set _ = _network.__setitem__('mtu', value.mtu | default(1500 | string)) %}
+      {%     set _ = _networks.append(_network) %}
       {%   endif %}
-      {%   set _ = _network.__setitem__('usedns', (value.usedns | default(true) | bool) | ternary('yes', 'no')) %}
-      {%   set _ = _network.__setitem__('static_routes', value.static_routes | default([])) %}
-      {%   if value.gateway is defined %}
-      {%     set _ = _network.__setitem__('gateway', value.gateway) %}
-      {%   endif %}
-      {%   set _ = _network.__setitem__('mtu', value.mtu | default(1500 | string)) %}
-      {%   set _ = _networks.append(_network) %}
       {% endfor %}
       {{ _networks | sort(attribute='interface') }}
   tags:
