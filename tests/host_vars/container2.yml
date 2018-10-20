@@ -5,6 +5,7 @@ ansible_user: root
 
 physical_host: localhost
 
+container_name: container2
 container_tech: nspawn
 
 container_networks:
