@@ -282,6 +282,7 @@
     src: "/var/run/systemd/resolve/resolv.conf"
     dest: "/var/lib/machines/{{ inventory_hostname }}/etc/resolv.conf"
     force: true
+    follow: false
     state: link
   delegate_to: "{{ physical_host }}"
   when:
@@ -322,7 +323,7 @@
     daemon_reload: yes
     name: "systemd-nspawn@{{ systemd_escape.stdout }}"
     state: "{{ ((machinectl_container_clone is changed or container_config_new is changed or container_config_old is changed) | default(false)) | ternary('restarted', 'started') }}"
-    enabled: "{{ (nspawn_systemd_version | int > 219) | ternary('true', 'false') }}"
+    enabled: true
   register: machinectl_start
   retries: 5
   delay: 2
