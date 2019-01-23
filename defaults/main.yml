@@ -24,7 +24,7 @@ nspawn_networks:
 # This is a list of items that will be passed into the container as READ-ONLY
 # files or directories. If any of these items are passed into the container
 # the container create process will ensure the file is not present within the
-# contianer prior to writting the config.
+# container prior to writting the config.
 #  nspawn_read_only_host_bindmount:
 #    - { source: /etc/resolv.conf, dest: /etc/resolv.conf }
 nspawn_read_only_host_bindmount: "{{ _nspawn_read_only_host_bindmount | default([]) }}"
