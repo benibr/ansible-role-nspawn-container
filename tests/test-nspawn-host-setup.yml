@@ -17,6 +17,21 @@
   hosts: localhost
   connection: local
   become: true
+  vars:
+    nspawn_network_utils:
+      apt:
+        iptables: /sbin/iptables
+        ethtool: /sbin/ethtool
+      yum:
+        iptables: /usr/sbin/iptables
+        ethtool: /usr/sbin/ethtool
+      zypper:
+        iptables: /usr/sbin/iptables
+        ethtool: /sbin/ethtool
+      emerge:
+        iptables: /usr/sbin/iptables
+        ethtool: /usr/sbin/ethtool
+
   pre_tasks:
     - name: Gather facts
       setup:
@@ -125,12 +140,12 @@
                 RemainAfterExit: yes
             service_type: oneshot
             execstarts:
-              - "-/sbin/iptables -A POSTROUTING -t mangle -p tcp --dport 22 -j CHECKSUM --checksum-fill"
-              - "-/sbin/iptables -t nat -A POSTROUTING -o {{ ansible_default_ipv4.interface }} -j MASQUERADE"
-              - "-/sbin/ethtool -K br-mgmt gso off sg off tso off tx off"
+              - "-{{ nspawn_network_utils[ansible_pkg_mgr]['iptables'] }} -A POSTROUTING -t mangle -p tcp --dport 22 -j CHECKSUM --checksum-fill"
+              - "-{{ nspawn_network_utils[ansible_pkg_mgr]['iptables'] }} -t nat -A POSTROUTING -o {{ ansible_default_ipv4.interface }} -j MASQUERADE"
+              - "-{{ nspawn_network_utils[ansible_pkg_mgr]['ethtool'] }} -K br-mgmt gso off sg off tso off tx off"
             execstops:
-              - "/sbin/iptables -D POSTROUTING -t mangle -p tcp --dport 22 -j CHECKSUM --checksum-fill"
-              - "/sbin/iptables -t nat -D POSTROUTING -o {{ ansible_default_ipv4.interface }} -j MASQUERADE"
+              - "{{ nspawn_network_utils[ansible_pkg_mgr]['iptables'] }} -D POSTROUTING -t mangle -p tcp --dport 22 -j CHECKSUM --checksum-fill"
+              - "{{ nspawn_network_utils[ansible_pkg_mgr]['iptables'] }} -t nat -D POSTROUTING -o {{ ansible_default_ipv4.interface }} -j MASQUERADE"
             enabled: yes
             state: started
         systemd_tempd_prefix: openstack
