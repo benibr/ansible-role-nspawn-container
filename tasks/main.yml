@@ -352,7 +352,6 @@
 - name: Run the systemd-networkd role
   include_role:
     name: systemd_networkd
-    private: true
   vars:
     systemd_networkd_prefix: "nspawn_container"
     systemd_run_networkd: true
