@@ -1,5 +1,5 @@
 ---
-# Copyright 2014, Rackspace US, Inc.
+# Copyright 2018, Rackspace US, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,29 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-galaxy_info:
-  author: rcbops
-  description: Create an nspawn container
-  company: Rackspace
-  license: Apache2
-  min_ansible_version: 1.9.4
-  platforms:
-    - name: Debian
-      versions:
-        - stretch
-    - name: Ubuntu
-      versions:
-        - bionic
-        - xenial
-    - name: EL
-      versions:
-        - 7
-  categories:
-    - cloud
-    - nspawn
-    - container
-    - python
-    - development
-    - openstack
-dependencies:
-  - plugins
+_nspawn_map:
+  distro: debian
+  arch: "{{ nspawn_architecture_mapping[container_architecture] }}"
+  release: stretch
