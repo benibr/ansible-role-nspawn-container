@@ -29,31 +29,6 @@
     - skip_ansible_lint
     - always
 
-- name: Pull filesystem information
-  command: "btrfs filesystem show --raw /var/lib/machines"
-  changed_when: false
-  register: filesystem
-  delegate_to: "{{ physical_host }}"
-  tags:
-    - skip_ansible_lint
-    - always
-
-- name: Set qgroup space fact
-  set_fact:
-    nspawn_host_qgroup_space_limit: "{{ filesystem.stdout.strip().splitlines()[-1].split()[3] }}"
-  when:
-    - nspawn_host_qgroup_space_limit == 'none'
-  tags:
-    - always
-
-- name: Set qgroup compression fact
-  set_fact:
-    nspawn_host_qgroup_compression_limit: "{{ filesystem.stdout.strip().splitlines()[-1].split()[3] }}"
-  when:
-    - nspawn_host_qgroup_compression_limit == 'none'
-  tags:
-    - always
-
 - name: Set facts
   set_fact:
     nspawn_systemd_version: "{{ systemd_version.stdout_lines[0].split()[-1] }}"
@@ -200,24 +175,24 @@
   tags:
     - skip_ansible_lint
 
-- name: Set the qgroup limits
-  block:
-    - name: Set the qgroup size|compression limits on machines
-      command: "btrfs qgroup limit {{ item }} /var/lib/machines/{{ inventory_hostname }}"
-      changed_when: false
-      delegate_to: "{{ physical_host }}"
-      with_items:
-        - "-e {{ nspawn_host_qgroup_space_limit }}"
-        - "-c {{ nspawn_host_qgroup_compression_limit }}"
-      when:
-        - not nspawn_host_machine_quota_disabled
-  rescue:
-    - name: Notice regarding quota system
-      debug:
-        msg: >-
-          There was an error processing the setup of qgroups. Check the system
-          to ensure they're available otherwise disable the quota system by
-          setting `nspawn_host_machine_quota_disabled` to true.
+      #- name: Set the qgroup limits
+      #  block:
+      #    - name: Set the qgroup size|compression limits on machines
+      #      command: "btrfs qgroup limit {{ item }} /var/lib/machines/{{ inventory_hostname }}"
+      #      changed_when: false
+      #      delegate_to: "{{ physical_host }}"
+      #      with_items:
+      #        - "-e {{ nspawn_host_qgroup_space_limit }}"
+      #        - "-c {{ nspawn_host_qgroup_compression_limit }}"
+      #      when:
+      #        - not nspawn_host_machine_quota_disabled
+      #  rescue:
+      #    - name: Notice regarding quota system
+      #      debug:
+      #        msg: >-
+      #          There was an error processing the setup of qgroups. Check the system
+      #          to ensure they're available otherwise disable the quota system by
+      #          setting `nspawn_host_machine_quota_disabled` to true.
 
 - name: Container directories
   file:
