@@ -31,9 +31,12 @@
 
 - name: Set facts
   set_fact:
-    nspawn_systemd_version: "{{ systemd_version.stdout_lines[0].split()[-1] }}"
+    nspawn_systemd_version: "{{ systemd_version.stdout_lines[0].split()[2] }}"
   tags:
     - always
+
+- debug:
+    msg: "{{ nspawn_systemd_version }}"
 
 - name: Gather variables for each operating system
   include_vars: "{{ item }}"

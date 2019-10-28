@@ -18,7 +18,7 @@
 nspawn_networks:
   nspawn_address:
     bridge: "nspawn0"
-    interface: "mv-nspawn0"
+    interface: "lan0"
     address: dhcp
 
 # This is a list of items that will be passed into the container as READ-ONLY

@@ -8,14 +8,14 @@ physical_host: localhost
 container_name: container3
 container_tech: nspawn
 
-container_networks:
-  management_address:
-    address: "{{ ansible_host }}"
-    netmask: "255.255.255.0"
-    bridge: "br-mgmt"
-
-container_extra_networks:
-  extra_address:
-    address: "172.29.254.103"
-    netmask: "255.255.255.0"
-    bridge: "br-extra"
+#container_networks:
+#  management_address:
+#    address: "{{ ansible_host }}"
+#    netmask: "255.255.255.0"
+#    bridge: "br-mgmt"
+#
+#container_extra_networks:
+#  extra_address:
+#    address: "172.29.254.103"
+#    netmask: "255.255.255.0"
+#    bridge: "br-extra"
