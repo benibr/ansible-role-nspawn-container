@@ -38,11 +38,13 @@
 - name: Gather variables for each operating system
   include_vars: "{{ item }}"
   with_first_found:
-    - "{{ hostvars[physical_host]['ansible_distribution'] | lower }}-{{ hostvars[physical_host]['ansible_distribution_version'] | lower }}.yml"
-    - "{{ hostvars[physical_host]['ansible_distribution'] | lower }}-{{ hostvars[physical_host]['ansible_distribution_major_version'] | lower }}.yml"
-    - "{{ hostvars[physical_host]['ansible_os_family'] | lower }}-{{ hostvars[physical_host]['ansible_distribution_major_version'] | lower }}.yml"
-    - "{{ hostvars[physical_host]['ansible_distribution'] | lower }}.yml"
-    - "{{ hostvars[physical_host]['ansible_os_family'] | lower }}.yml"
+    - files:
+      - "{{ hostvars[physical_host]['ansible_distribution'] | lower }}-{{ hostvars[physical_host]['ansible_distribution_version'] | lower }}.yml"
+      - "{{ hostvars[physical_host]['ansible_distribution'] | lower }}-{{ hostvars[physical_host]['ansible_distribution_major_version'] | lower }}.yml"
+      - "{{ hostvars[physical_host]['ansible_os_family'] | lower }}-{{ hostvars[physical_host]['ansible_distribution_major_version'] | lower }}.yml"
+      - "{{ hostvars[physical_host]['ansible_distribution'] | lower }}.yml"
+      - "{{ hostvars[physical_host]['ansible_os_family'] | lower }}.yml"
+      skip: true
   tags:
     - always
 
