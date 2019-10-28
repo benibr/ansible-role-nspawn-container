@@ -130,7 +130,7 @@
 # and use it as the base nspawn config file with the option to config template
 # override.
 - name: Copy container config (existing)
-  config_template:
+  template:
     content: "{{ nspawn_config.content | b64decode }}"
     dest: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
     owner: "root"
@@ -148,7 +148,7 @@
 # If no nspawn configuration file exists, create a new config file using the
 # default template.
 - name: Copy container config (new)
-  config_template:
+  template:
     src: templates/container_config.nspawn.j2
     dest: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
     owner: "root"
