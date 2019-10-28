@@ -22,17 +22,17 @@ Bind={{ bind.mount_path }}:/{{ bind.bind_dir_path }}
 Bind={{ bind }}:{{ bind }}
 {% endfor %}
 
-#[Network]
-#{% set macvlans = [] %}
-#{% for key, value in nspawn_combined_networks.items() %}
-#{%   if value.interface is defined %}
-#{%     set macvlan = value.interface %}
-#{%   else %}
-#{%     set macvlan = 'mv-' + value.bridge.split('br-')[-1] %}
-#{%   endif %}
-#{%   set _ = macvlans.append(macvlan) %}
-#{% endfor %}
-#{% if macvlans | length > 0 %}
-#Private=yes
-#MACVLAN={{ macvlans | unique | join(' ') }}
-#{% endif %}
+[Network]
+{% set macvlans = [] %}
+{% for key, value in nspawn_combined_networks.items() %}
+{%   if value.interface is defined %}
+{%     set macvlan = value.interface %}
+{%   else %}
+{%     set macvlan = 'mv-' + value.bridge.split('br-')[-1] %}
+{%   endif %}
+{%   set _ = macvlans.append(macvlan) %}
+{% endfor %}
+{% if macvlans | length > 0 %}
+Private=yes
+MACVLAN={{ macvlans | unique | join(' ') }}
+{% endif %}

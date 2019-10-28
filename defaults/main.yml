@@ -18,7 +18,7 @@
 nspawn_networks:
   nspawn_address:
     bridge: "nspawn0"
-    interface: "lan0"
+    interface: "dock0"
     address: dhcp
 
 # This is a list of items that will be passed into the container as READ-ONLY
@@ -84,15 +84,13 @@ container_architecture: "{{ hostvars[container_host]['ansible_architecture'] | l
 container_image: "{{ nspawn_map['distro'] }}-{{ nspawn_map['release'] }}-{{ nspawn_map['arch'] }}"
 
 # The domain the containers will exist within.
-container_domain: "openstack.local"
+container_domain: "local"
 
 # Container Default bind mounts. This option will be merged with the container
 # bind mounts. This option takes a list of files with `mount_path` defining the
 # path on the host and `bind_dir_path` which defines the intra-container path
 # and is relative, it assumes that it starts with a "/".
-container_default_bind_mounts:
-  - mount_path: "/openstack/backup/{{ inventory_hostname }}"
-    bind_dir_path: "var/backup"
+container_default_bind_mounts: []
 
 # Container bind mounts. This option takes a list of files on a host that will
 # be mounted at the exact same path within the container. This option takes a
@@ -109,13 +107,13 @@ container_bind_mounts: []
 container_config_overrides: {}
 
 # Default networks that will be applied ALL containerized deployments.
-#  container_networks:
-#    management_address:
-#      address: "{{ ansible_host | default('localhost') }}"
-#      netmask: "255.255.255.0"
-#      bridge: "br-mgmt"
-#      static_routes:
-#        - cidr: 172.29.100.0/24
-#          gateway: 172.29.100.100
+container_networks:
+  management_address:
+    address: "{{ ansible_host | default('localhost') }}"
+    netmask: "255.255.255.0"
+    bridge: "br-mgmt"
+    static_routes:
+      - cidr: 172.29.100.0/24
+        gateway: 172.29.100.100
 
 container_networks: {}
