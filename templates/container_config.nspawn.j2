@@ -13,8 +13,6 @@ MachineID={{ systemd_escape.stdout | to_uuid }}
 {% for ro_bind in nspawn_read_only_host_bindmount %}
 BindReadOnly={{ ro_bind.source }}:{{ ro_bind.dest }}
 {% endfor %}
-Bind=/openstack/backup/{{ inventory_hostname }}:/var/backup
-Bind=/openstack/log/{{ inventory_hostname }}:/var/log
 {% for bind in container_default_bind_mounts | union(container_bind_mounts | default([])) %}
 Bind={{ bind.mount_path }}:/{{ bind.bind_dir_path }}
 {% endfor %}
@@ -23,16 +21,20 @@ Bind={{ bind }}:{{ bind }}
 {% endfor %}
 
 [Network]
+Private=yes
 {% set macvlans = [] %}
+{% set veths = [] %}
 {% for key, value in nspawn_combined_networks.items() %}
-{%   if value.interface is defined %}
+{%   if value.type is 'macvlan' %}
 {%     set macvlan = value.interface %}
-{%   else %}
-{%     set macvlan = 'mv-' + value.bridge.split('br-')[-1] %}
+{%   endif %}
+{%   set _ = macvlans.append(macvlan) %}
+{%   if value.type is 'veth' %}
+VirtualEthernet=yes
 {%   endif %}
 {%   set _ = macvlans.append(macvlan) %}
 {% endfor %}
 {% if macvlans | length > 0 %}
-Private=yes
 MACVLAN={{ macvlans | unique | join(' ') }}
 {% endif %}
+{% 

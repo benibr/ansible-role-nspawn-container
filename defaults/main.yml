@@ -16,9 +16,8 @@
 # === systemd-nspawn defaults ==================================================
 # Default networks that will be applied ONLY to nspwan deployments.
 nspawn_networks:
-  nspawn_address:
-    bridge: "nspawn0"
-    interface: "dock0"
+  default_network:
+    type: veth
     address: dhcp
 
 # This is a list of items that will be passed into the container as READ-ONLY
