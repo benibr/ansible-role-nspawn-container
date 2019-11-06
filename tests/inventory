@@ -1,8 +1,5 @@
-[all]
+[all_hosts]
 localhost
-container1
-container2
-container3
 
 [all_containers]
 container1

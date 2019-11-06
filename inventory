@@ -1,0 +1,2 @@
+novaprospekt      ansible_host=novaprospekt.domainmess.org           ansible_user=benibr
+test_ct           physical_host=novaprospekt

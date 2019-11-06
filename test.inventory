@@ -1,0 +1,10 @@
+[all_hosts]
+195.192.132.128
+
+[all_containers]
+container1
+container2
+container3
+
+
+#ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBADlrKNzA1toDYsxY5rm2Y9Q4yP0V8rOzRBwkHW5kxo/3HIhRq7GGaD2u1byAuHKOCEwMHqAnTbzH1yamgP/sgu5RwBnlnpffUc3Pbp+OW3mctkuT4C0eUN0/+aq4oyhegIlWdh1STgyP/UciK4/l99FyzcptAeMdQRvH+S9zMLfrPi08w== OpenStack Test Key

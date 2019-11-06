@@ -14,7 +14,7 @@
 # limitations under the License.
 
 - name: Gather host facts
-  hosts: localhost
+  hosts: all_hosts
   connection: local
 
 - name: Create container(s)
