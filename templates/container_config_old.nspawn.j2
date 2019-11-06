@@ -22,7 +22,7 @@
 {%   if value.interface is defined %}
 {%     set macvlan = value.interface %}
 {%   else %}
-{%     set macvlan = 'mv-' + value.bridge.split('br-')[-1] %}
+{%     set macvlan = 'mv-' + value.interface %}
 {%   endif %}
 {%   if macvlan not in macvlans %}
 {%     set _ = macvlans.append(macvlan) %}

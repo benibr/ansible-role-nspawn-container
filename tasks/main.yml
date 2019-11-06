@@ -28,9 +28,10 @@
   tags:
     - skip_ansible_lint
     - always
+
 - name: Set facts
   set_fact:
-    nspawn_systemd_version: "{{ systemd_version.stdout_lines[0].split()[2] }}"
+    nspawn_systemd_version: "{{ systemd_version.stdout_lines[0].split()[1] }}"
   tags:
     - always
 
@@ -123,7 +124,7 @@
 
 # If no nspawn configuration file exists, create a new config file using the
 # default template.
-- name: Copy container config (new)
+- name: Copy container config
   template:
     src: templates/container_config.nspawn.j2
     dest: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
@@ -139,17 +140,17 @@
       not nspawn_config_exists.stat.exists | bool
     - nspawn_systemd_version | int > 219
 
-- name: Copy container config (old)
-  template:
-    src: templates/container_config_old.nspawn.j2
-    dest: "/etc/systemd/system/systemd-nspawn@{{ systemd_escape.stdout }}.service"
-    owner: "root"
-    group: "root"
-    mode: "0644"
-  register: container_config_old
-  delegate_to: "{{ physical_host }}"
-  when:
-    - nspawn_systemd_version | int < 220
+      #- name: Copy container config (old)
+      #  template:
+      #    src: templates/container_config_old.nspawn.j2
+      #    dest: "/etc/systemd/system/systemd-nspawn@{{ systemd_escape.stdout }}.service"
+      #    owner: "root"
+      #    group: "root"
+      #    mode: "0644"
+      #  register: container_config_old
+      #  delegate_to: "{{ physical_host }}"
+      #  when:
+      #    - nspawn_systemd_version | int < 220
 
 - name: Notice existing container config changed
   debug:
@@ -200,9 +201,6 @@
     path: "{{ item }}"
     state: "directory"
   with_items:
-    - "/openstack/{{ inventory_hostname }}"
-    - "/openstack/backup/{{ inventory_hostname }}"
-    - "/openstack/log/{{ inventory_hostname }}"
     - "/var/lib/machines/{{ inventory_hostname }}/var/log/journal"
     - "/var/lib/machines/{{ inventory_hostname }}/etc/systemd/network"
     - "/var/lib/machines/{{ inventory_hostname }}/etc/systemd/nspawn"
@@ -287,7 +285,7 @@
     - name: Place resolv.conf
       copy:
         content: |
-          nameserver {{ hostvars[physical_host]['ansible_mv_' + nspawn_networks['nspawn_address']['bridge']]['ipv4']['address'] }}
+          nameserver {{ hostvars[physical_host]['ansible_mv_' + nspawn_networks['nspawn_address']['host0']]['ipv4']['address'] }}
           search {{ container_domain }}
         dest: "/var/lib/machines/{{ inventory_hostname }}/etc/resolv.conf"
       delegate_to: "{{ physical_host }}"

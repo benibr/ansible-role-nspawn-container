@@ -37,4 +37,3 @@ VirtualEthernet=yes
 {% if macvlans | length > 0 %}
 MACVLAN={{ macvlans | unique | join(' ') }}
 {% endif %}
-{% 

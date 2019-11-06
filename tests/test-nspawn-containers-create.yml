@@ -21,6 +21,8 @@
   hosts: all_containers
   gather_facts: false
   become: true
+
+  # These pretask will remove the containers
   pre_tasks:
     - name: Get container status
       command: machinectl status "{{ inventory_hostname }}"
@@ -63,16 +65,4 @@
         - skip_ansible_lint
 
   roles:
-    - role: "nspawn_container_create"
-
-  post_tasks:
-    - name: Create detail gathering script
-      template:
-        src: "dump-container-details.sh.j2"
-        dest: "/opt/dump-{{ inventory_hostname }}-details.sh"
-        mode: "0755"
-
-    - name: Collect details
-      command: "/opt/dump-{{ inventory_hostname }}-details.sh"
-      tags:
-        - skip_ansible_lint
+    - role: "ansible-nspawn-create"
