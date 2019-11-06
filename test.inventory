@@ -1,5 +1,7 @@
+physical_testhost  ansible_host=195.192.132.128          ansible_user=ubuntu
+
 [all_hosts]
-195.192.132.128
+physical_testhost
 
 [all_containers]
 container1

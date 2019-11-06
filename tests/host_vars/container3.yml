@@ -3,7 +3,7 @@ ansible_host: 172.29.100.103
 ansible_become: True
 ansible_user: root
 
-physical_host: localhost
+physical_host: physical_testhost
 
 container_name: container3
 container_tech: nspawn

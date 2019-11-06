@@ -1,5 +1,7 @@
+physical_testhost  ansible_host=localhost          ansible_connection=local
+
 [all_hosts]
-localhost
+physical_testhost
 
 [all_containers]
 container1

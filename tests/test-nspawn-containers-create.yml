@@ -14,8 +14,8 @@
 # limitations under the License.
 
 - name: Gather host facts
-  hosts: all_hosts
-  connection: local
+  hosts: physical_testhost
+  gather_facts: true
 
 - name: Create container(s)
   hosts: all_containers
@@ -61,15 +61,6 @@
         - machinectl_container_image_status.rc == 0
       tags:
         - skip_ansible_lint
-
-    - name: Container cleanup
-      file:
-        path: "{{ item }}"
-        state: "absent"
-      with_items:
-        - "/openstack/log/{{ inventory_hostname }}"
-        - "/openstack/{{ inventory_hostname }}"
-      delegate_to: "{{ physical_host }}"
 
   roles:
     - role: "nspawn_container_create"
