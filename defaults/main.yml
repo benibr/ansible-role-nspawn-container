@@ -69,21 +69,3 @@ container_default_bind_mounts: []
 # and starts at "/".
 container_bind_mounts: []
 
-# option used to specific specific container config values which will be
-# directly injected into the container service or nspawn config file. This
-# option take Key=Value pairs and can be used to set any desired config options
-# in any section. Review the following link for more details:
-# * https://www.freedesktop.org/software/systemd/man/systemd.nspawn.html
-container_config_overrides: {}
-
-# Default networks that will be applied ALL containerized deployments.
-container_default_networks:
-  management_address:
-    address: "{{ ansible_host | default('localhost') }}"
-    netmask: "255.255.255.0"
-    bridge: "br-mgmt"
-    static_routes:
-      - cidr: 172.29.100.0/24
-        gateway: 172.29.100.100
-
-container_networks: {}
