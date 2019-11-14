@@ -216,6 +216,20 @@
   when:
     - nspawn_container_enable_resolved | bool
 
+- name: Create avahi config in container
+  template:
+    src: templates/avahi-daemon.conf.j2
+    dest: "/var/lib/machines/{{ inventory_hostname }}/etc/avahi/avahi-daemon.conf"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  register: container_avahi_config
+  delegate_to: "{{ physical_host }}"
+  when:
+    - not nspawn_container_preserve_config | bool or
+      not nspawn_config_exists.stat.exists | bool
+    - nspawn_systemd_version | int > 219
+
       ## Some distros do not have access to systemd-resolved. If the option
       ## `nspawn_container_enable_resolved` is disabled this will ensure functionality
       ## in the absence of modern systemd.
