@@ -12,5 +12,5 @@ container_networks:
   macvlan:
     address: "{{ ansible_host }}"
     netmask: "255.255.255.0"
-    interface: mw0
+    interface: lan0
     type: macvlan

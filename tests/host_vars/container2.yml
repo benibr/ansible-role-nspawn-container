@@ -12,4 +12,4 @@ container_networks:
   host_interface:
     address: "{{ ansible_host }}"
     netmask: "255.255.255.0"
-    interface: eth0
+    type: veth

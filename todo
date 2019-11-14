@@ -1,0 +1,10 @@
+# Version 1
+## todo
+* create container
+* veth
+* mv if
+* macvlan
+
+# version 2
+## todo
+* bootstrap ansible ready basic container

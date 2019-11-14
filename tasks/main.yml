@@ -131,8 +131,8 @@
     owner: "root"
     group: "root"
     mode: "0644"
-    config_overrides: "{{ container_config_overrides | default({}) }}"
-    config_type: "ini"
+    #    config_overrides: "{{ container_config_overrides | default({}) }}"
+    #    config_type: "ini"
   register: container_config_new
   delegate_to: "{{ physical_host }}"
   when:
