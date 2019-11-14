@@ -140,18 +140,6 @@
       not nspawn_config_exists.stat.exists | bool
     - nspawn_systemd_version | int > 219
 
-      #- name: Copy container config (old)
-      #  template:
-      #    src: templates/container_config_old.nspawn.j2
-      #    dest: "/etc/systemd/system/systemd-nspawn@{{ systemd_escape.stdout }}.service"
-      #    owner: "root"
-      #    group: "root"
-      #    mode: "0644"
-      #  register: container_config_old
-      #  delegate_to: "{{ physical_host }}"
-      #  when:
-      #    - nspawn_systemd_version | int < 220
-
 - name: Notice existing container config changed
   debug:
     msg: >-
@@ -262,25 +250,25 @@
   when:
     - nspawn_container_enable_resolved | bool
 
-# Some distros do not have access to systemd-resolved. If the option
-# `nspawn_container_enable_resolved` is disabled this will ensure functionality
-# in the absence of modern systemd.
-- name: Legacy resolvers
-  block:
-    - name: Check resolv.conf
-      stat:
-        path: "/var/lib/machines/{{ inventory_hostname }}/etc/resolv.conf"
-      delegate_to: "{{ physical_host }}"
-      register: nspawn_resolv_conf
-
-    - name: Remove resolv.conf link
-      file:
-        path: "/var/lib/machines/{{ inventory_hostname }}/etc/resolv.conf"
-        state: absent
-      delegate_to: "{{ physical_host }}"
-      when:
-        - nspawn_resolv_conf.stat.islnk is defined and
-          nspawn_resolv_conf.stat.islnk
+      ## Some distros do not have access to systemd-resolved. If the option
+      ## `nspawn_container_enable_resolved` is disabled this will ensure functionality
+      ## in the absence of modern systemd.
+      #- name: Legacy resolvers
+      #  block:
+      #    - name: Check resolv.conf
+      #      stat:
+      #        path: "/var/lib/machines/{{ inventory_hostname }}/etc/resolv.conf"
+      #      delegate_to: "{{ physical_host }}"
+      #      register: nspawn_resolv_conf
+      #
+      #    - name: Remove resolv.conf link
+      #      file:
+      #        path: "/var/lib/machines/{{ inventory_hostname }}/etc/resolv.conf"
+      #        state: absent
+      #      delegate_to: "{{ physical_host }}"
+      #      when:
+      #        - nspawn_resolv_conf.stat.islnk is defined and
+      #          nspawn_resolv_conf.stat.islnk
 
     - name: Place resolv.conf
       copy:
@@ -296,7 +284,7 @@
   systemd:
     daemon_reload: yes
     name: "systemd-nspawn@{{ systemd_escape.stdout }}"
-    state: "{{ ((machinectl_container_clone is changed or container_config_new is changed or container_config_old is changed) | default(false)) | ternary('restarted', 'started') }}"
+    state: "{{ ((machinectl_container_clone is changed or container_config_new is changed) | default(false)) | ternary('restarted', 'started') }}"
     enabled: true
   register: machinectl_start
   retries: 5

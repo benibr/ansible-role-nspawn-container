@@ -24,16 +24,21 @@ Bind={{ bind }}:{{ bind }}
 Private=yes
 {% set macvlans = [] %}
 {% set veth = False %}
+{% set hostinterfaces = [] %}
 {% for network,parameters in nspawn_combined_networks.items() %}
 {%   if parameters['type'] == 'macvlan' %}
 {%     set _ = macvlans.append(parameters['interface']) %}
-{%   endif %}
-{%   if parameters['type'] == 'veth' %}
+{%   elif parameters['type'] == 'veth' %}
 {%     set veth = True %}
+{%   elif parameters['type'] == 'hostinterface' %}
+{%     set _ = hostinterfaces.append(parameters['interface']) %}
 {%   endif %}
 {% endfor %}
 {% if macvlans | length > 0 %}
 MACVLAN={{ macvlans | unique | join(' ') }}
+{% endif %}
+{% if hostinterfaces | length > 0 %}
+Interface={{ hostinterfaces | unique | join(' ') }}
 {% endif %}
 {% if veth == False %}
 VirtualEthernet=yes

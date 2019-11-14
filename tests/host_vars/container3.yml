@@ -7,3 +7,11 @@ physical_host: physical_testhost
 
 container_name: container3
 container_tech: nspawn
+
+container_networks:
+  macvlan:
+    address: "1.3.3.7"
+    netmask: "255.255.255.0"
+    interface: test1
+    type: hostinterface
+

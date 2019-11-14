@@ -1,10 +1,21 @@
 # Version 1
 ## todo
+## done
+* mv if
 * create container
 * veth
-* mv if
 * macvlan
 
 # version 2
+## todo
+* assign veth ip
+* macvlan dhcp + report
+* assign macvlan ip
+
+# version 2
+## todo
+* config avahi
+
+# version 4
 ## todo
 * bootstrap ansible ready basic container
