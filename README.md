@@ -1,6 +1,20 @@
 # ansible-nspawn
 This role creates systemd-nspawn containers from a base image and makes them accessible via network
 
+## preparation
+```bash
+# prepare base images in /var/lib/machines
+
+# prepare debian base image
+debootstrap --include=systemd-container,vim,openssh-server,avahi --arch=amd64 buster ./debian-buster-amd64
+
+# prepare ubuntu base image
+debootstrap --arch=amd64 --include vim,avahi bionic ./ubuntu-bionic-amd64 http://de.archive.ubuntu.com/ubuntu
+
+# prepare archlinux base image
+pacstrap -i archlinux-rolling-amd64/ base avahi openssh
+```
+
 ## working features
 * create containers from template
 * add host interface to container namespace
