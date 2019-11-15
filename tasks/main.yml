@@ -169,7 +169,7 @@
 
 - name: Container RO bind path cleanup
   file:
-    path: "/var/lib/machines/{{ inventory_hostname }}/{{ item.container_path }}"
+    path: "/var/lib/machines/{{ inventory_hostname }}/{{ item.container_path | default(item.host_path) }}"
     state: "absent"
   with_items: "{{ container_default_ro_bind_mounts | union(container_ro_bind_mounts | default([])) }}"
   delegate_to: "{{ physical_host }}"

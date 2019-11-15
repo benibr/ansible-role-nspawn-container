@@ -6,20 +6,6 @@ nspawn_networks:
     type: veth
     address: dhcp
 
-# This is a list of items that will be passed into the container as READ-ONLY
-# files or directories. If any of these items are passed into the container
-# the container create process will ensure the file is not present within the
-# container prior to writting the config.
-#  nspawn_read_only_host_bindmount:
-#    - { source: /etc/resolv.conf, dest: /etc/resolv.conf }
-nspawn_read_only_host_bindmount: "{{ _nspawn_read_only_host_bindmount | default([]) }}"
-
-# This is a list of items that will be passed into the container as a shared
-# bind mount. If any of these items are passed into the container.
-#  nspawn_shared_host_bindmount:
-#    - /etc/apt
-nspawn_shared_host_bindmount:
-  - /etc/localtime
 
 # Defined CPU architecture map
 nspawn_architecture_mapping:
@@ -45,9 +31,6 @@ nspawn_container_enable_resolved: "{{ _nspawn_container_enable_resolved | defaul
 nspawn_container_preserve_config: true
 
 # === General container defaults ===============================================
-# NOTE(cloudnull): These are host specific variables we capture up-front. These
-#                  psuedo variables are used to capture the container host
-#                  information but could be overridden to deploy whatever.
 container_host: "{{ hostvars[inventory_hostname]['physical_host'] | default('localhost') }}"
 container_architecture: "{{ hostvars[container_host]['ansible_architecture'] | lower }}"
 
@@ -62,6 +45,7 @@ container_domain: "local"
 container_default_ro_bind_mounts:
   - host_path: '/var/lib/machines/.ssh'
     container_path: '/root/.ssh'
+  - host_path: '/etc/localtime'
 
 # Same as container_default_ro_bind_mounts. This should be used in host_vars
 container_ro_bind_mounts: []
