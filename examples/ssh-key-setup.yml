@@ -3,6 +3,7 @@
 # it will later be mounted into the container
 - name: Setup ssh key environment
   hosts: physical_host
+  become: true
   tasks:
     - name: Gather facts
       setup:

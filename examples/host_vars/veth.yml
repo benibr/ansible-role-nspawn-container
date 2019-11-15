@@ -3,7 +3,7 @@ ansible_host: 172.29.100.102
 ansible_become: True
 ansible_user: root
 
-physical_host: physical_testhost
+physical_host: physical_host
 
 container_networks:
   veth:
