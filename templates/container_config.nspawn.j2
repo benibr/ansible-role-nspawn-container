@@ -10,14 +10,11 @@ Environment={{ key }}={{ value }}
 MachineID={{ systemd_escape.stdout | to_uuid }}
 
 [Files]
-{% for ro_bind in nspawn_read_only_host_bindmount %}
-BindReadOnly={{ ro_bind.source }}:{{ ro_bind.dest }}
+{% for ro_bind in container_default_ro_bind_mounts | union(container_ro_bind_mounts | default([])) %}
+BindReadOnly={{ ro_bind.host_path }}:{{ ro_bind.container_path }}
 {% endfor %}
 {% for bind in container_default_bind_mounts | union(container_bind_mounts | default([])) %}
-Bind={{ bind.mount_path }}:/{{ bind.bind_dir_path }}
-{% endfor %}
-{% for bind in nspawn_shared_host_bindmount %}
-Bind={{ bind }}:{{ bind }}
+Bind={{ bind.host_path }}:{{ bind.container_path }}
 {% endfor %}
 
 [Network]
