@@ -92,6 +92,12 @@
   register: nspawn_config_exists
   delegate_to: "{{ physical_host }}"
 
+- name: Create nspawn directory
+  file:
+    path: "/etc/systemd/nspawn"
+    state: "directory"
+  delegate_to: "{{ physical_host }}"
+
 - name: Slurp existing nspawn config
   slurp:
     src: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
@@ -197,23 +203,23 @@
 
 - name: Container RO bind path cleanup
   file:
-    path: "/var/lib/machines/{{ inventory_hostname }}{{ item.dest }}"
+    path: "/var/lib/machines/{{ inventory_hostname }}/{{ item.container_path }}"
     state: "absent"
-  with_items: "{{ nspawn_read_only_host_bindmount }}"
+  with_items: "{{ container_default_ro_bind_mounts | union(container_ro_bind_mounts | default([])) }}"
   delegate_to: "{{ physical_host }}"
   when:
     - machinectl_container_status.rc != 0
 
 - name: Create Container inner directories
   file:
-    path: "/var/lib/machines/{{ inventory_hostname }}/{{ item.bind_dir_path }}"
+    path: "/var/lib/machines/{{ inventory_hostname }}/{{ item.container_path | default(item.host_path) }}"
     state: "directory"
   with_items: "{{ container_default_bind_mounts | union(container_bind_mounts | default([])) }}"
   delegate_to: "{{ physical_host }}"
 
 - name: Container outer service directories
   file:
-    path: "{{ item.mount_path }}"
+    path: "{{ item.host_path }}"
     state: "directory"
   with_items: "{{ container_default_bind_mounts | union(container_bind_mounts | default([])) }}"
   delegate_to: "{{ physical_host }}"
