@@ -3,8 +3,6 @@
 # it will later be mounted into the container
 - name: Setup ssh key environment
   hosts: physical_host
-  connection: local
-  become: false
   tasks:
     - name: Gather facts
       setup:
@@ -29,6 +27,11 @@
     - name: Prepare container ssh key fact
       set_fact:
         user_ssh_key: "{{ _root_ssh_key['content'] | b64decode }}"
+
+    - name: create an authorized_keys file to mount to containers
+      file:
+        path: '/var/lib/machines/.ssh'
+        state: directory
 
     - name: create an authorized_keys file to mount to containers
       copy:
