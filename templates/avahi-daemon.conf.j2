@@ -1,0 +1,16 @@
+[server]
+host-name={{ inventory_hostname }}
+domain-name={{ hostvars[physical_host]['ansible_hostname'] }}.local
+use-ipv4=yes
+use-ipv6=yes
+ratelimit-interval-usec=1000000
+ratelimit-burst=1000
+allow-point-to-point=yes
+
+[wide-area]
+enable-wide-area=yes
+
+[publish]
+publish-hinfo=no
+publish-workstation=no
+

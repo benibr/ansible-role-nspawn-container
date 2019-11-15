@@ -1,4 +1,7 @@
+<<<<<<< HEAD
+=======
 ---
+>>>>>>> 115a65789382455ae22d21d45187d4c32645cded
 # === systemd-nspawn defaults ==================================================
 # Default networks that will be applied ONLY to nspwan deployments.
 nspawn_networks:
@@ -6,6 +9,24 @@ nspawn_networks:
     type: veth
     address: dhcp
 
+<<<<<<< HEAD
+# This is a list of items that will be passed into the container as READ-ONLY
+# files or directories. If any of these items are passed into the container
+# the container create process will ensure the file is not present within the
+# container prior to writting the config.
+#  nspawn_read_only_host_bindmount:
+#    - { source: /etc/resolv.conf, dest: /etc/resolv.conf }
+nspawn_read_only_host_bindmount: "{{ _nspawn_read_only_host_bindmount | default([]) }}"
+
+# This is a list of items that will be passed into the container as a shared
+# bind mount. If any of these items are passed into the container.
+#  nspawn_shared_host_bindmount:
+#    - /etc/apt
+nspawn_shared_host_bindmount:
+  - /etc/localtime
+
+=======
+>>>>>>> 115a65789382455ae22d21d45187d4c32645cded
 # Defined CPU architecture map
 nspawn_architecture_mapping:
   x86_64: amd64
@@ -28,18 +49,6 @@ nspawn_container_enable_resolved: "{{ _nspawn_container_enable_resolved | defaul
 # exists. When this is set to "false" the container will be restarted should the
 # configuration task(s) result in change.
 nspawn_container_preserve_config: true
-
-# Enable or Disable the BTRFS quota system for the "/var/lib/machines" mount
-# point. More information on the BTRFS quota system can be found here:
-#  * https://btrfs.wiki.kernel.org/index.php/Quota_support
-nspawn_host_machine_quota_disabled: false
-
-# Set the default qgroup limits used for file system quotas. The default is
-# "none". See the following documentation for more information:
-#  * https://btrfs.wiki.kernel.org/index.php/Manpage/btrfs-qgroup
-nspawn_host_qgroup_space_limit: none
-nspawn_host_qgroup_compression_limit: none
-
 
 # === General container defaults ===============================================
 # NOTE(cloudnull): These are host specific variables we capture up-front. These
@@ -70,6 +79,8 @@ container_default_bind_mounts: []
 # Same as container_default_bind_mounts. This should be used in host_vars
 container_bind_mounts: []
 
+<<<<<<< HEAD
+=======
 # Default networks that will be applied ALL containerized deployments.
 container_default_networks:
   management_address:
@@ -81,3 +92,4 @@ container_default_networks:
         gateway: 172.29.100.100
 
 container_networks: {}
+>>>>>>> 115a65789382455ae22d21d45187d4c32645cded
