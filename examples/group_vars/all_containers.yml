@@ -1,0 +1,2 @@
+deployment_environment_variables:
+  foo: bar

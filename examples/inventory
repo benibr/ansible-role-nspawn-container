@@ -1,0 +1,11 @@
+# this is the hostsystem on which the nspawn containers will bespawned
+# its inventory name has to be referenced in the containers host_vars
+physical_testhost  ansible_host=localhost          ansible_connection=local
+
+[all_hosts]
+physical_testhost
+
+[all_containers]
+container-macvlan
+container-hostinterface
+container-veth

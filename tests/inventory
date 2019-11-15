@@ -1,9 +1,0 @@
-physical_testhost  ansible_host=localhost          ansible_connection=local
-
-[all_hosts]
-physical_testhost
-
-[all_containers]
-container1
-container2
-container3

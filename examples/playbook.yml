@@ -1,6 +1,0 @@
-- name: Create container(s)
-  hosts: all_containers
-  gather_facts: false
-  user: root
-  roles:
-    - { role: "nspawn_container_create" }

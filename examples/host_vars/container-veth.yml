@@ -1,16 +1,12 @@
 ---
-ansible_host: 172.29.100.101
+ansible_host: 172.29.100.102
 ansible_become: True
 ansible_user: root
 
 physical_host: physical_testhost
 
-container_name: container_macvlan
-container_tech: nspawn
-
 container_networks:
-  macvlan:
+  veth:
     address: "{{ ansible_host }}"
     netmask: "255.255.255.0"
-    interface: lan0
-    type: macvlan
+    type: veth
