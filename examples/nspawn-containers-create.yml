@@ -1,28 +1,15 @@
 ---
-# Copyright 2018, Rackspace US, Inc.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
+# This playbook removes and recreates three example containers 
 - name: Gather host facts
   hosts: physical_testhost
   gather_facts: true
 
-- name: Create container(s)
+- name: (Re-) create example container(s)
   hosts: all_containers
   gather_facts: false
   become: true
 
-  # These pretask will remove the containers
+  # These pretasks will remove the containers
   pre_tasks:
     - name: Get container status
       command: machinectl status "{{ inventory_hostname }}"
@@ -64,5 +51,6 @@
       tags:
         - skip_ansible_lint
 
+  # the actual work happens in the role and uses the values from host_vars
   roles:
     - role: "ansible-nspawn-create"

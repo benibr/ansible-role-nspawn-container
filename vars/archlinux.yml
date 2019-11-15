@@ -1,5 +1,5 @@
-# this is just a test, not production ready
+---
 _nspawn_map:
-  distro: ubuntu
+  distro: archlinux
   arch: "{{ nspawn_architecture_mapping[container_architecture] }}"
-  release: bionic
+  release: rolling

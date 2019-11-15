@@ -1,27 +1,22 @@
-========================
-Team and repository tags
-========================
+# ansible-nspawn
+This role creates systemd-nspawn containers from a base image and makes them accessible via network
 
-.. image:: https://governance.openstack.org/tc/badges/openstack-ansible-nspawn_container_create.svg
-    :target: https://governance.openstack.org/tc/reference/tags/index.html
+## working features
+* create containers from template
+* add host interface to container namespace
+* add veth interface to container
+* add macvlan interface to container
+* setup basic DNS inside the container
 
-.. Change things from this point on
+## planned feature
+* automatic avahi/mDNS config
+* static IP config inside the container
+* basic SSH key setup inside the container
+* bind mounts to the container
 
-=========================================
-OpenStack-Ansible nspawn container create
-=========================================
+## possible but not planned feature
+* base image create eg. with debootstrap 
+* bridge setup with DHCP
 
-Documentation for the project can be found at:
-  https://docs.openstack.org/openstack-ansible-nspawn_container_create/latest/
-
-Release notes for the project can be found at:
-  https://docs.openstack.org/releasenotes/openstack-ansible-nspawn_container_create/
-
-The project source code repository is located at:
+This project was froked from:
   https://opendev.org/openstack/openstack-ansible-nspawn_container_create/
-
-The project home is at:
-  https://launchpad.net/openstack-ansible
-
-The project bug tracker is located at:
-  https://bugs.launchpad.net/openstack-ansible

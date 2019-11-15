@@ -170,7 +170,7 @@
   when:
     - machinectl_container_status.rc != 0
 
-- name: Container inner service directories
+- name: Create Container inner directories
   file:
     path: "/var/lib/machines/{{ inventory_hostname }}/{{ item.bind_dir_path }}"
     state: "directory"
