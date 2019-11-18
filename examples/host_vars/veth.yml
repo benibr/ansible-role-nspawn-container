@@ -1,5 +1,4 @@
 ---
-ansible_host: "{{ inventory_hostname }}.{{ physical_host }}.local"
 ansible_become: True
 ansible_user: root
 

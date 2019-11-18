@@ -1,11 +1,10 @@
 ---
-# === systemd-nspawn defaults ==================================================
-# Default networks that will be applied ONLY to nspwan deployments.
-nspawn_networks:
+container_default_networks:
   default_network:
     type: veth
     address: dhcp
-
+# same as container_default_networks but should be used in host_vars
+container_networks: {}
 
 # Defined CPU architecture map
 nspawn_architecture_mapping:
@@ -62,8 +61,6 @@ container_default_bind_mounts:
 
 # Same as container_default_bind_mounts. This should be used in host_vars
 container_bind_mounts: []
-
-container_networks: {}
 
 # add the root users authorized keys to the container
 copy_host_authorized_keys: true

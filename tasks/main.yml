@@ -257,7 +257,7 @@
       #    - name: Place resolv.conf
       #      copy:
       #        content: |
-      #          nameserver {{ hostvars[physical_host]['ansible_mv_' + nspawn_networks['nspawn_address']['host0']]['ipv4']['address'] }}
+      #          ##nameserver {{ hostvars[physical_host]['ansible_mv_' + nspawn_networks['nspawn_address']['host0']]['ipv4']['address'] }}
       #          search {{ container_domain }}
       #        dest: "/var/lib/machines/{{ inventory_hostname }}/etc/resolv.conf"
       #      delegate_to: "{{ physical_host }}"
@@ -310,12 +310,12 @@
 #    systemd_interface_cleanup: true
 #    systemd_resolved_available: "{{ nspawn_container_enable_resolved }}"
 #    systemd_resolved:
-#      DNS: "{{ hostvars[physical_host]['ansible_mv_' + nspawn_networks['nspawn_address']['bridge']]['ipv4']['address'] }}"
+#      ##DNS: "{{ hostvars[physical_host]['ansible_mv_' + nspawn_networks['nspawn_address']['bridge']]['ipv4']['address'] }}"
 #      Domains: "{{ container_domain }}"
 #    systemd_networks: |-
 #      {% set seen_networks = [] %}
 #      {% set _networks = [] %}
-#      {# All nspawn_networks and container_extra_networks will be iterated over. #}
+#      ###{# All nspawn_networks and container_extra_networks will be iterated over. #}
 #      {# If a device is found, a networkd config will be generated for it. #}
 #      {% for _, value in nspawn_combined_networks.items() %}
 #      {%   set netname = value.interface | default('mv-' + value.bridge.split('br-')[-1]) %}
