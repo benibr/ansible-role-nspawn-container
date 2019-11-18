@@ -64,3 +64,6 @@ container_default_bind_mounts:
 container_bind_mounts: []
 
 container_networks: {}
+
+# add the root users authorized keys to the container
+copy_host_authorized_keys: true

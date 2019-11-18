@@ -280,7 +280,7 @@
   command: >-
     hostnamectl --machine="{{ inventory_hostname }}" {{ item }} --pretty --static --transient
   with_items:
-    - "set-hostname {{ inventory_hostname | replace('_', '-') }}.{{ container_domain }}"
+    - "set-hostname {{ inventory_hostname | replace('_', '-') }}.{{ physical_host }}.{{ container_domain }}"
     - "set-location {{ physical_host }}"
     - "set-chassis container"
     - "set-deployment {{ container_domain }}"
@@ -292,6 +292,12 @@
   delegate_to: "{{ physical_host }}"
   tags:
     - skip_ansible_lint
+
+- name: Copy authorized keys
+  shell: "cat /root/.ssh/authorized_keys >> /var/lib/machines/{{ inventory_hostname }}/root/.ssh/authorized_keys"
+  delegate_to: "{{ physical_host }}"
+  when: 
+    - copy_host_authorized_keys | bool
 
 # This point the container is running. Delegation should no longer be required.
 # ==============================================================================

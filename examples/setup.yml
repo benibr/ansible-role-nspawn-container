@@ -1,6 +1,7 @@
 ---
-# this playbook creates an ssh keypair an drops an authorized_keys in /var/lib/machines
-# it will later be mounted into the container
+# this playbook setups the host machine. It creates an ssh keypair an drops
+# an authorized_keys in /var/lib/machines it will later be mounted into the 
+# container.
 - name: Setup ssh key environment
   hosts: physical_host
   become: true

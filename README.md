@@ -26,12 +26,12 @@ systemctl enable systemd-networkd
 * add veth interface to container
 * add macvlan interface to container
 * setup basic DNS inside the container
+* automatic avahi/mDNS config
+* bind mounts to the container
 
 ## planned feature
-* automatic avahi/mDNS config
 * static IP config inside the container
 * basic SSH key setup inside the container
-* bind mounts to the container
 
 ## possible but not planned feature
 * base image create eg. with debootstrap 
