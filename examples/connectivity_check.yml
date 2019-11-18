@@ -8,8 +8,8 @@
   tasks:
     - name: Ping the container itself
       ping:
-    - name: Test connectivity to container gateway
-      command: "ping -c {{ physical_host }}.{{container_domain}}"
+    - name: Test connectivity to container
+      command: "ping -c {{ physical_host }}.local"
       register: machinectl_ping
       retries: 3
       delay: 3
