@@ -1,3 +1,5 @@
 ---
-physical_host: localhost
 ansible_connection: local
+ansible_host: localhost
+ansible_user: root
+ansible_become: True

@@ -1,3 +1,6 @@
+# ubuntu test kiste
 #ansible_python_interpreter: "/usr/bin/python2"
 
-physical_host: 195.192.132.128
+ansible_host: 195.192.132.128
+ansible_user: ubuntu
+ansible_become: True
