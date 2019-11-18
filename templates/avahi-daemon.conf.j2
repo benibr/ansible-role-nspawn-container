@@ -1,6 +1,6 @@
 [server]
 host-name={{ inventory_hostname }}
-domain-name={{ hostvars[physical_host]['ansible_hostname'] }}.local
+domain-name={{ hostvars[physical_host]['ansible_hostname'] }}.{{ container_domain }}
 use-ipv4=yes
 use-ipv6=yes
 ratelimit-interval-usec=1000000

@@ -38,3 +38,8 @@
       copy:
         content: "{{ user_ssh_key }}"
         dest: '/var/lib/machines/.ssh/authorized_keys'
+
+    - name: install avahi
+      package:
+        name: avahi-daemon
+        state: present

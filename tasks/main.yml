@@ -98,14 +98,12 @@
 # and use it as the base nspawn config file with the option to config template
 # override.
 - name: Copy container config (existing)
-  template:
+  copy:
     content: "{{ nspawn_config.content | b64decode }}"
     dest: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
     owner: "root"
     group: "root"
     mode: "0644"
-    config_overrides: "{{ container_config_overrides | default({}) }}"
-    config_type: "ini"
   register: container_config_existing
   delegate_to: "{{ physical_host }}"
   when:
