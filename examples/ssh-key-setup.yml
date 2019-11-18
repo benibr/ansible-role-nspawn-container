@@ -37,4 +37,5 @@
     - name: create an authorized_keys file to mount to containers
       copy:
         content: "{{ user_ssh_key }}"
+        mode: 0600
         dest: '/var/lib/machines/.ssh/authorized_keys'

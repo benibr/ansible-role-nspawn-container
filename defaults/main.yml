@@ -43,8 +43,6 @@ container_domain: "local"
 # Container Default Read-Only bind mounts. This option will be merged with the container
 # ro bind mounts.
 container_default_ro_bind_mounts:
-  - host_path: '/var/lib/machines/.ssh'
-    container_path: '/root/.ssh'
   - host_path: '/etc/localtime'
 
 # Same as container_default_ro_bind_mounts. This should be used in host_vars
@@ -52,7 +50,9 @@ container_ro_bind_mounts: []
 
 # Container Default bind mounts. This option will be merged with the container
 # bind mounts.
-container_default_bind_mounts: []
+container_default_bind_mounts:
+  - host_path: '/var/lib/machines/.ssh'
+    container_path: '/root/.ssh'
 
 # Same as container_default_bind_mounts. This should be used in host_vars
 container_bind_mounts: []
