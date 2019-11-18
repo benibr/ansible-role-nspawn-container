@@ -1,6 +1,7 @@
 # {{ ansible_managed }}
 
 [Exec]
+PrivateUsers=no
 Boot=on
 {% if deployment_environment_variables is defined %}
 {%   for key, value in deployment_environment_variables.items() %}
@@ -22,7 +23,7 @@ Private=yes
 {% set macvlans = [] %}
 {% set veth = False %}
 {% set hostinterfaces = [] %}
-{% for network,parameters in nspawn_combined_networks.items() %}
+{% for network,parameters in container_combined_networks.items() %}
 {%   if parameters['type'] == 'macvlan' %}
 {%     set _ = macvlans.append(parameters['interface']) %}
 {%   elif parameters['type'] == 'veth' %}

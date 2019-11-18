@@ -98,14 +98,12 @@
 # and use it as the base nspawn config file with the option to config template
 # override.
 - name: Copy container config (existing)
-  template:
+  copy:
     content: "{{ nspawn_config.content | b64decode }}"
     dest: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
     owner: "root"
     group: "root"
     mode: "0644"
-    config_overrides: "{{ container_config_overrides | default({}) }}"
-    config_type: "ini"
   register: container_config_existing
   delegate_to: "{{ physical_host }}"
   when:
@@ -259,7 +257,7 @@
       #    - name: Place resolv.conf
       #      copy:
       #        content: |
-      #          nameserver {{ hostvars[physical_host]['ansible_mv_' + nspawn_networks['nspawn_address']['host0']]['ipv4']['address'] }}
+      #          ##nameserver {{ hostvars[physical_host]['ansible_mv_' + nspawn_networks['nspawn_address']['host0']]['ipv4']['address'] }}
       #          search {{ container_domain }}
       #        dest: "/var/lib/machines/{{ inventory_hostname }}/etc/resolv.conf"
       #      delegate_to: "{{ physical_host }}"
@@ -282,7 +280,7 @@
   command: >-
     hostnamectl --machine="{{ inventory_hostname }}" {{ item }} --pretty --static --transient
   with_items:
-    - "set-hostname {{ inventory_hostname | replace('_', '-') }}.{{ container_domain }}"
+    - "set-hostname {{ inventory_hostname | replace('_', '-') }}.{{ physical_host }}.{{ container_domain }}"
     - "set-location {{ physical_host }}"
     - "set-chassis container"
     - "set-deployment {{ container_domain }}"
@@ -295,6 +293,12 @@
   tags:
     - skip_ansible_lint
 
+- name: Copy authorized keys
+  shell: "cat /root/.ssh/authorized_keys >> /var/lib/machines/{{ inventory_hostname }}/root/.ssh/authorized_keys"
+  delegate_to: "{{ physical_host }}"
+  when: 
+    - copy_host_authorized_keys | bool
+
 # This point the container is running. Delegation should no longer be required.
 # ==============================================================================
 #- name: Run the systemd-networkd role
@@ -306,12 +310,12 @@
 #    systemd_interface_cleanup: true
 #    systemd_resolved_available: "{{ nspawn_container_enable_resolved }}"
 #    systemd_resolved:
-#      DNS: "{{ hostvars[physical_host]['ansible_mv_' + nspawn_networks['nspawn_address']['bridge']]['ipv4']['address'] }}"
+#      ##DNS: "{{ hostvars[physical_host]['ansible_mv_' + nspawn_networks['nspawn_address']['bridge']]['ipv4']['address'] }}"
 #      Domains: "{{ container_domain }}"
 #    systemd_networks: |-
 #      {% set seen_networks = [] %}
 #      {% set _networks = [] %}
-#      {# All nspawn_networks and container_extra_networks will be iterated over. #}
+#      ###{# All nspawn_networks and container_extra_networks will be iterated over. #}
 #      {# If a device is found, a networkd config will be generated for it. #}
 #      {% for _, value in nspawn_combined_networks.items() %}
 #      {%   set netname = value.interface | default('mv-' + value.bridge.split('br-')[-1]) %}

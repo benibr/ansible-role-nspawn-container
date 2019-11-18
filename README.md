@@ -6,13 +6,18 @@ This role creates systemd-nspawn containers from a base image and makes them acc
 # prepare base images in /var/lib/machines
 
 # prepare debian base image
-debootstrap --include=systemd-container,vim,openssh-server,avahi --arch=amd64 buster ./debian-buster-amd64
+debootstrap --include=systemd-container,vim,openssh-server,avahi-daemon --arch=amd64 buster ./debian-buster-amd64
 
 # prepare ubuntu base image
-debootstrap --arch=amd64 --include vim,avahi bionic ./ubuntu-bionic-amd64 http://de.archive.ubuntu.com/ubuntu
+debootstrap --arch=amd64 --include vim,openssh-server,avahi-daemon bionic ./ubuntu-bionic-amd64 http://de.archive.ubuntu.com/ubuntu
 
 # prepare archlinux base image
 pacstrap -i archlinux-rolling-amd64/ base avahi openssh
+```
+```
+# enable services
+systemctl enable avahi-daemon
+systemctl enable systemd-networkd
 ```
 
 ## working features
@@ -21,12 +26,12 @@ pacstrap -i archlinux-rolling-amd64/ base avahi openssh
 * add veth interface to container
 * add macvlan interface to container
 * setup basic DNS inside the container
+* automatic avahi/mDNS config
+* bind mounts to the container
 
 ## planned feature
-* automatic avahi/mDNS config
 * static IP config inside the container
 * basic SSH key setup inside the container
-* bind mounts to the container
 
 ## possible but not planned feature
 * base image create eg. with debootstrap 

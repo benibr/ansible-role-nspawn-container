@@ -1,11 +1,10 @@
 ---
-# === systemd-nspawn defaults ==================================================
-# Default networks that will be applied ONLY to nspwan deployments.
-nspawn_networks:
+container_default_networks:
   default_network:
     type: veth
     address: dhcp
-
+# same as container_default_networks but should be used in host_vars
+container_networks: {}
 
 # Defined CPU architecture map
 nspawn_architecture_mapping:
@@ -37,7 +36,13 @@ container_architecture: "{{ hostvars[container_host]['ansible_architecture'] | l
 # Name of the on-disk image to use for deployment.
 container_image: "{{ nspawn_map['distro'] }}-{{ nspawn_map['release'] }}-{{ nspawn_map['arch'] }}"
 
-# The domain the containers will exist within.
+# The domain the containers will exist within. Every container will have a FQDN consisting of
+# <container>.<host>.<container_domain>
+# where container is the hostname of the container
+#       host is the hostname of the physical host
+#       and containerdomain can be defined
+# If you choose something else than .local as TLD you probably need to
+# configure avahi accordingly.
 container_domain: "local"
 
 # Container Default Read-Only bind mounts. This option will be merged with the container
@@ -57,4 +62,5 @@ container_default_bind_mounts:
 # Same as container_default_bind_mounts. This should be used in host_vars
 container_bind_mounts: []
 
-container_networks: {}
+# add the root users authorized keys to the container
+copy_host_authorized_keys: true
