@@ -1,5 +1,4 @@
 ---
-ansible_host: 172.29.100.101
 ansible_become: True
 ansible_user: root
 
