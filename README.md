@@ -32,6 +32,8 @@ systemctl enable systemd-networkd
 ## planned feature
 * static IP config inside the container
 * basic SSH key setup inside the container
+* no network namespace mode (like chroot)
+* use already existing namespace
 
 ## possible but not planned feature
 * base image create eg. with debootstrap 
