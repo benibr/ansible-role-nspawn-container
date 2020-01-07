@@ -5,8 +5,5 @@ ansible_user: root
 physical_host: physical_host
 
 container_networks:
-  macvlan:
-    address: "{{ ansible_host }}"
-    netmask: "255.255.255.0"
-    interface: lan0
-    type: macvlan
+  none:
+    type: host
