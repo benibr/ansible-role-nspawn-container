@@ -19,22 +19,26 @@ Bind={{ bind.host_path }}:{{ bind.container_path }}
 {% endfor %}
 
 [Network]
-{% if parameters['type'] == 'host' %}
+{% set macvlans = [] %}
+{% set veth = False %}
+{% set hostinterfaces = [] %}
+{% set private_network = true %}
+{% for network,parameters in container_combined_networks.items() %}
+{%   if parameters['type'] == 'host' %}
+{%     set private_network = false %}
+{%   endif %}
+{%   if parameters['type'] == 'macvlan' %}
+{%     set _ = macvlans.append(parameters['interface']) %}
+{%   elif parameters['type'] == 'veth' %}
+{%     set veth = True %}
+{%   elif parameters['type'] == 'hostinterface' %}
+{%     set _ = hostinterfaces.append(parameters['interface']) %}
+{%   endif %}
+{% endfor %}
+{% if private_network == false %}
 Private=no
 {% else %}
 Private=yes
-{%   set macvlans = [] %}
-{%   set veth = False %}
-{%   set hostinterfaces = [] %}
-{%   for network,parameters in container_combined_networks.items() %}
-{%     if parameters['type'] == 'macvlan' %}
-{%       set _ = macvlans.append(parameters['interface']) %}
-{%     elif parameters['type'] == 'veth' %}
-{%       set veth = True %}
-{%     elif parameters['type'] == 'hostinterface' %}
-{%       set _ = hostinterfaces.append(parameters['interface']) %}
-{%     endif %}
-{%   endfor %}
 {%   if macvlans | length > 0 %}
 MACVLAN={{ macvlans | unique | join(' ') }}
 {%   endif %}
