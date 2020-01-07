@@ -20,6 +20,8 @@ Might be usefull for creating nspawns on servers in your local network or for cr
 * static IP config inside the container
 * basic SSH key setup inside the container
 * skipping most of the steps if container already exists
+* no network namespace mode (like chroot)
+* use already existing namespace
 
 ## possible but not planned feature
 * base image create eg. with debootstrap 
