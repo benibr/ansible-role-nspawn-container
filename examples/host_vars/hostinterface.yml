@@ -8,6 +8,6 @@ container_networks:
   hostinterface:
     address: "1.3.3.7"
     netmask: "255.255.255.0"
-    interface: test1
+    interface: eth1
     type: hostinterface
 

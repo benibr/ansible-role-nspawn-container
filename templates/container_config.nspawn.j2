@@ -19,11 +19,14 @@ Bind={{ bind.host_path }}:{{ bind.container_path }}
 {% endfor %}
 
 [Network]
-Private=yes
 {% set macvlans = [] %}
 {% set veth = False %}
+{% set private_network = True %}
 {% set hostinterfaces = [] %}
-{% for network,parameters in container_combined_networks.items() %}
+{% for network,parameters in container_combined_networks.items() scoped %}
+{%   if parameters['type'] == 'host' %}
+{%     set private_network = False %}
+{%   endif %}
 {%   if parameters['type'] == 'macvlan' %}
 {%     set _ = macvlans.append(parameters['interface']) %}
 {%   elif parameters['type'] == 'veth' %}
@@ -32,12 +35,17 @@ Private=yes
 {%     set _ = hostinterfaces.append(parameters['interface']) %}
 {%   endif %}
 {% endfor %}
-{% if macvlans | length > 0 %}
+{% if private_network == False %}
+Private=no
+{% else %}
+Private=yes
+{%   if macvlans | length > 0 %}
 MACVLAN={{ macvlans | unique | join(' ') }}
-{% endif %}
-{% if hostinterfaces | length > 0 %}
+{%   endif %}
+{%   if hostinterfaces | length > 0 %}
 Interface={{ hostinterfaces | unique | join(' ') }}
-{% endif %}
-{% if veth == False %}
+{%   endif %}
+{%   if veth == True %}
 VirtualEthernet=yes
+{%   endif %}
 {% endif %}
