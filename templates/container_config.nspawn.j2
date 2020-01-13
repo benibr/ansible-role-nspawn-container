@@ -19,33 +19,32 @@ Bind={{ bind.host_path }}:{{ bind.container_path }}
 {% endfor %}
 
 [Network]
-{% set macvlans = [] %}
-{% set veth = False %}
-{% set private_network = True %}
-{% set hostinterfaces = [] %}
-{% for network,parameters in container_combined_networks.items() scoped %}
+{% set ns = namespace(macvlans=[]) %}
+{% set ns = namespace(veth=False) %}
+{% set ns = namespace(private_network=True) %}
+{% set ns = namespace(hostinterfaces=[]) %}
+{% for network,parameters in container_combined_networks.items() %}
 {%   if parameters['type'] == 'host' %}
-{%     set private_network = False %}
-{%   endif %}
-{%   if parameters['type'] == 'macvlan' %}
-{%     set _ = macvlans.append(parameters['interface']) %}
+{%     set ns.private_network = False %}
+{%   elif parameters['type'] == 'macvlan' %}
+{%     set _ = ns.macvlans.append(parameters['interface']) %}
 {%   elif parameters['type'] == 'veth' %}
-{%     set veth = True %}
+{%     set ns.veth = True %}
 {%   elif parameters['type'] == 'hostinterface' %}
-{%     set _ = hostinterfaces.append(parameters['interface']) %}
+{%     set _ = ns.hostinterfaces.append(parameters['interface']) %}
 {%   endif %}
 {% endfor %}
-{% if private_network == False %}
+{% if ns.private_network == False %}
 Private=no
 {% else %}
 Private=yes
-{%   if macvlans | length > 0 %}
-MACVLAN={{ macvlans | unique | join(' ') }}
-{%   endif %}
-{%   if hostinterfaces | length > 0 %}
-Interface={{ hostinterfaces | unique | join(' ') }}
-{%   endif %}
-{%   if veth == True %}
+{%   if ns.veth == True %}
 VirtualEthernet=yes
+{%   endif %}
+{%   if ns.macvlans | length > 0 %}
+MACVLAN={{ ns.macvlans | unique | join(' ') }}
+{%   endif %}
+{%   if ns.hostinterfaces | length > 0 %}
+Interface={{ ns.hostinterfaces | unique | join(' ') }}
 {%   endif %}
 {% endif %}
