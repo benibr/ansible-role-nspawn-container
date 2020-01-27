@@ -1,8 +1,7 @@
 ---
 container_default_networks:
-  default_network:
-    type: veth
-    address: dhcp
+  default:
+    type: none
 # same as container_default_networks but should be used in host_vars
 container_networks: {}
 
