@@ -17,20 +17,14 @@ Might be usefull for creating nspawns on servers in your local network or for cr
 * bind mounts to the container
 
 ## planned feature
+* no network namespace mode (like chroot)
+* use already existing namespace
+* skipping most of the steps if container already exists
+* base image create eg. with debootstrap 
+
+## possible but not planned features
 * static IP config inside the container
 * basic SSH key setup inside the container
-<<<<<<< HEAD
-* no network namespace mode (like chroot)
-* use already existing namespace
-* skipping most of the steps if container already exists
-=======
-* skipping most of the steps if container already exists
-* no network namespace mode (like chroot)
-* use already existing namespace
->>>>>>> 87cc57cc32c88619b5bf1a78be472f89844727b6
-
-## possible but not planned feature
-* base image create eg. with debootstrap 
 * bridge setup with DHCP
 
 ## preparation
@@ -46,6 +40,7 @@ debootstrap --arch=amd64 --include vim,openssh-server,avahi-daemon bionic ./ubun
 # prepare archlinux base image
 pacstrap -i archlinux-rolling-amd64/ base avahi openssh
 ```
+
 ```
 # enable services on host and in base image
 systemctl enable avahi-daemon

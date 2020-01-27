@@ -7,4 +7,3 @@ physical_host
 macvlan
 hostinterface
 veth
-host_netnamespace

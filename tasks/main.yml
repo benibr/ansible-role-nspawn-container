@@ -346,6 +346,6 @@
 - name: Force all notified handlers now
   meta: flush_handlers
 
-- name: (RE)Gather facts post setup
-  setup:
-    gather_subset: "network,hardware,virtual"
+#- name: (RE)Gather facts post setup
+#  setup:
+#    gather_subset: "network,hardware,virtual"

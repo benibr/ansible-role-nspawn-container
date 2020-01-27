@@ -53,4 +53,4 @@
 
   # the actual work happens in the role and uses the values from host_vars
   roles:
-    - role: "ansible-nspawn-create"
+    - role: "ansible-nspawn-container"

@@ -5,9 +5,9 @@ ansible_user: root
 physical_host: physical_host
 
 container_networks:
-  hostinterface:
-    address: "1.3.3.7"
-    netmask: "255.255.255.0"
-    interface: eth1
+  hostinterface0:
+    interface: veth0
     type: hostinterface
-
+  hostinterface1:
+    interface: veth1
+    type: hostinterface
