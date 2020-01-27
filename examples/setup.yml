@@ -10,10 +10,6 @@
       setup:
         gather_subset: "!all"
 
-    - name: Show host facts
-      debug:
-        var: hostvars
-
     - name: Ensure user ssh key
       user:
         name: "{{ ansible_user_id | default('root') }}"
@@ -21,14 +17,14 @@
         ssh_key_bits: 2048
         ssh_key_file: ".ssh/nspawn"
 
-    - name: Get root ssh key
+    - name: Get ssh key
       slurp:
         src: '~/.ssh/nspawn.pub'
-      register: _root_ssh_key
+      register: _ssh_key
 
     - name: Prepare container ssh key fact
       set_fact:
-        user_ssh_key: "{{ _root_ssh_key['content'] | b64decode }}"
+        user_ssh_key: "{{ _ssh_key['content'] | b64decode }}"
 
     - name: create an authorized_keys file to mount to containers
       file:
