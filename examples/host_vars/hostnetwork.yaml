@@ -1,0 +1,9 @@
+---
+ansible_become: True
+ansible_user: root
+
+physical_host: physical_host
+
+container_networks:
+  hostnetwork:
+    type: host
