@@ -161,7 +161,6 @@
   with_items:
     - "/var/lib/machines/{{ inventory_hostname }}/var/log/journal"
     - "/var/lib/machines/{{ inventory_hostname }}/etc/systemd/network"
-    - "/var/lib/machines/{{ inventory_hostname }}/etc/systemd/nspawn"
     - "/var/lib/machines/{{ inventory_hostname }}/var/lib/dbus"
   delegate_to: "{{ physical_host }}"
 
@@ -207,6 +206,15 @@
     mode: "0444"
     remote_src: "yes"
   remote_user: root
+  delegate_to: "{{ physical_host }}"
+
+- name: Create systemd-network default config
+  template:
+    src: templates/systemd-networkd_default.network.j2
+    dest: "/var/lib/machines/{{ inventory_hostname }}/etc/systemd/network/default.network"
+    owner: "root"
+    group: "root"
+    mode: "0644"
   delegate_to: "{{ physical_host }}"
 
 - name: Create resolved link
@@ -266,6 +274,7 @@
 - name: Copy authorized keys
   shell: "cat /root/.ssh/authorized_keys >> /var/lib/machines/{{ inventory_hostname }}/root/.ssh/authorized_keys"
   delegate_to: "{{ physical_host }}"
+  failed_when: false
   when: 
     - copy_host_authorized_keys | bool
 
