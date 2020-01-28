@@ -230,6 +230,22 @@
   register: container_avahi_config
   delegate_to: "{{ physical_host }}"
 
+- name: Create .ssh directory
+  file:
+    path: "/var/lib/machines/{{ inventory_hostname }}/root/.ssh"
+    state: "directory"
+  delegate_to: "{{ physical_host }}"
+
+- name: Copy authorized keys
+  copy:
+    content: "{{ deploy_sshkey }}"
+    dest: "/var/lib/machines/{{ inventory_hostname }}/root/.ssh/authorized_keys"
+    owner: 0
+    group: 0
+    mode: "0640"
+  delegate_to: "{{ physical_host }}"
+  when: deploy_sshkey is defined
+
 - name: Start new container (enable)
   systemd:
     daemon_reload: yes
@@ -258,22 +274,6 @@
   delegate_to: "{{ physical_host }}"
   tags:
     - skip_ansible_lint
-
-- name: Create .ssh directory
-  file:
-    path: "/var/lib/machines/{{ inventory_hostname }}/root/.ssh"
-    state: "directory"
-  delegate_to: "{{ physical_host }}"
-
-- name: Copy authorized keys
-  copy:
-    content: "{{ deploy_sshkey }}"
-    dest: "/var/lib/machines/{{ inventory_hostname }}/root/.ssh/authorized_keys"
-    owner: "root"
-    group: "root"
-    mode: "0644"
-  delegate_to: "{{ physical_host }}"
-  when: deploy_sshkey is defined
 
 # This point the container is running. Delegation should no longer be required.
 # ==============================================================================
