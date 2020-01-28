@@ -83,29 +83,28 @@
     state: "directory"
   delegate_to: "{{ physical_host }}"
 
-- name: Slurp existing nspawn config
-  slurp:
-    src: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
-  register: nspawn_config
-  changed_when: false
-  delegate_to: "{{ physical_host }}"
-
-# Check for the existance of an nspawn configuration file. If found slurp it up
-# and use it as the base nspawn config file with the option to config template
-# override.
-- name: Copy container config (existing)
-  copy:
-    content: "{{ nspawn_config.content | b64decode }}"
-    dest: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
-    owner: "root"
-    group: "root"
-    mode: "0644"
-  register: container_config_existing
-  delegate_to: "{{ physical_host }}"
-  when:
-    - nspawn_container_preserve_config | bool
-    - nspawn_config_exists.stat.exists | bool
-    - nspawn_systemd_version | int > 219
+  #- name: Slurp existing nspawn config
+  #  slurp:
+  #    src: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
+  #  register: nspawn_config
+  #  changed_when: false
+  #  delegate_to: "{{ physical_host }}"
+  #
+  ## Check for the existance of an nspawn configuration file. If found slurp it up
+  ## and use it as the base nspawn config file with the option to config template
+  ## override.
+  #- name: Copy container config (existing)
+  #  copy:
+  #    content: "{{ nspawn_config.content | b64decode }}"
+  #    dest: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
+  #    owner: "root"
+  #    group: "root"
+  #    mode: "0644"
+  #  register: container_config_existing
+  #  delegate_to: "{{ physical_host }}"
+  #  when:
+  #    - nspawn_container_preserve_config | bool
+  #    - nspawn_config_exists.stat.exists | bool
 
 # If no nspawn configuration file exists, create a new config file using the
 # default template.
@@ -116,27 +115,24 @@
     owner: "root"
     group: "root"
     mode: "0644"
-    #    config_overrides: "{{ container_config_overrides | default({}) }}"
-    #    config_type: "ini"
   register: container_config_new
   delegate_to: "{{ physical_host }}"
   when:
     - not nspawn_container_preserve_config | bool or
       not nspawn_config_exists.stat.exists | bool
-    - nspawn_systemd_version | int > 219
 
-- name: Notice existing container config changed
-  debug:
-    msg: >-
-      The existing container config has changed. While this change has been
-      noticed, no restart has been performed. By not restarting the container
-      the system is preserving the state of the environment by not causing
-      unexpected downtime. For these changes to go into effect the container
-      must be restarted. This can be done using the following command,
-      `machinectl [poweroff|start] {{ inventory_hostname }}`. To disable the
-      configation saving set `nspawn_container_preserve_config` to false.
-  when:
-    - container_config_existing is changed
+      #- name: Notice existing container config changed
+      #  debug:
+      #    msg: >-
+      #      The existing container config has changed. While this change has been
+      #      noticed, no restart has been performed. By not restarting the container
+      #      the system is preserving the state of the environment by not causing
+      #      unexpected downtime. For these changes to go into effect the container
+      #      must be restarted. This can be done using the following command,
+      #      `machinectl [poweroff|start] {{ inventory_hostname }}`. To disable the
+      #      configation saving set `nspawn_container_preserve_config` to false.
+      #  when:
+      #    - container_config_existing is changed
 
 - name: Clone the base container image
   command: machinectl clone "{{ container_image }}" "{{ inventory_hostname }}"
@@ -263,12 +259,21 @@
   tags:
     - skip_ansible_lint
 
-- name: Copy authorized keys
-  shell: "cat /root/.ssh/authorized_keys >> /var/lib/machines/{{ inventory_hostname }}/root/.ssh/authorized_keys"
+- name: Create .ssh directory
+  file:
+    path: "/var/lib/machines/{{ inventory_hostname }}/root/.ssh"
+    state: "directory"
   delegate_to: "{{ physical_host }}"
-  failed_when: false
-  when: 
-    - copy_host_authorized_keys | bool
+
+- name: Copy authorized keys
+  copy:
+    content: "{{ deploy_sshkey }}"
+    dest: "/var/lib/machines/{{ inventory_hostname }}/root/.ssh/authorized_keys"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  delegate_to: "{{ physical_host }}"
+  when: deploy_sshkey is defined
 
 # This point the container is running. Delegation should no longer be required.
 # ==============================================================================
@@ -276,6 +281,6 @@
 - name: Force all notified handlers now
   meta: flush_handlers
 
-#- name: (RE)Gather facts post setup
-#  setup:
-#    gather_subset: "network,hardware,virtual"
+- name: (RE)Gather facts post setup
+  setup:
+    gather_subset: "network,hardware,virtual"
