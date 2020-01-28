@@ -1,7 +1,25 @@
 # {{ ansible_managed }}
+{% set ns = namespace(veth=False, private_network=True) %}
+{% set macvlans=[] %}
+{% set hostinterfaces=[] %}
+{% for network,parameters in container_combined_networks.items() %}
+{%   if parameters['type'] == 'host' %}
+{%     set ns.private_network = False %}
+{%   elif parameters['type'] == 'macvlan' %}
+{%     set _ = macvlans.append(parameters['interface']) %}
+{%   elif parameters['type'] == 'veth' %}
+{%     set ns.veth = True %}
+{%   elif parameters['type'] == 'hostinterface' %}
+{%     set _ = hostinterfaces.append(parameters['interface']) %}
+{%   endif %}
+{% endfor %}
 
 [Exec]
+{% if ns.private_network == False %}
+PrivateUsers=no
+{% else %}
 PrivateUsers=pick
+{% endif %}
 Boot=on
 {% if deployment_environment_variables is defined %}
 {%   for key, value in deployment_environment_variables.items() %}
@@ -19,20 +37,6 @@ Bind={{ bind.host_path }}:{{ bind.container_path }}
 {% endfor %}
 
 [Network]
-{% set ns = namespace(veth=False, private_network=True) %}
-{% set macvlans=[] %}
-{% set hostinterfaces=[] %}
-{% for network,parameters in container_combined_networks.items() %}
-{%   if parameters['type'] == 'host' %}
-{%     set ns.private_network = False %}
-{%   elif parameters['type'] == 'macvlan' %}
-{%     set _ = macvlans.append(parameters['interface']) %}
-{%   elif parameters['type'] == 'veth' %}
-{%     set ns.veth = True %}
-{%   elif parameters['type'] == 'hostinterface' %}
-{%     set _ = hostinterfaces.append(parameters['interface']) %}
-{%   endif %}
-{% endfor %}
 {% if ns.private_network == False %}
 Private=no
 {% else %}
