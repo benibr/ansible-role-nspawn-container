@@ -1,4 +1,4 @@
-# ansible-systemd-nspawn
+# ansible-role-nspawn-container
 This role creates systemd-nspawn containers from a base image and makes them accessible via network.
 
 The idea is that you setup a physical host via ansible and fill out host_vars files for the containers as if they were normal machines.
