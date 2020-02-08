@@ -240,9 +240,10 @@
   copy:
     content: "{{ deploy_sshkey }}"
     dest: "/var/lib/machines/{{ inventory_hostname }}/root/.ssh/authorized_keys"
-    owner: 0
-    group: 0
+    owner: root
+    group: root
     mode: "0640"
+    force: no
   delegate_to: "{{ physical_host }}"
   when: deploy_sshkey is defined
 
