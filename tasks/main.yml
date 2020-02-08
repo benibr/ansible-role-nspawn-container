@@ -83,6 +83,13 @@
     state: "directory"
   delegate_to: "{{ physical_host }}"
 
+- name: Create dropin config directory
+  file:
+    path: "/etc/systemd/{{ inventory_hostname }}.service.d"
+    state: "directory"
+  when: use_existing_netns
+  delegate_to: "{{ physical_host }}"
+
   #- name: Slurp existing nspawn config
   #  slurp:
   #    src: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
@@ -120,6 +127,15 @@
   when:
     - not nspawn_container_preserve_config | bool or
       not nspawn_config_exists.stat.exists | bool
+- name: Copy container service dropin config
+  template:
+    src: templates/systemd-netnamespace-dropin.conf.j2
+    dest: "/etc/systemd/system/{{ inventory_hostname }}.service.d/use_existing_netns.conf"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  delegate_to: "{{ physical_host }}"
+  when: use_existing_netns
 
       #- name: Notice existing container config changed
       #  debug:

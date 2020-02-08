@@ -1,0 +1,10 @@
+---
+ansible_become: True
+ansible_user: root
+
+physical_host: physical_host
+
+container_networks:
+  existing_namespace:
+    type: netns
+    name: somenamespace

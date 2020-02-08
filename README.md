@@ -15,16 +15,16 @@ Might be usefull for creating nspawns on servers in your local network or for cr
 * setup basic DNS inside the container
 * automatic avahi/mDNS config
 * bind mounts to the container
+* no network namespace mode (like chroot)
+* basic SSH key setup inside the container
 
 ## planned feature
-* no network namespace mode (like chroot)
 * use already existing namespace
 * skipping most of the steps if container already exists
 * base image create eg. with debootstrap 
 
 ## possible but not planned features
 * static IP config inside the container
-* basic SSH key setup inside the container
 * bridge setup with DHCP
 
 ## preparation
@@ -38,7 +38,7 @@ debootstrap --include=systemd-container,vim,openssh-server,avahi-daemon --arch=a
 debootstrap --arch=amd64 --include vim,openssh-server,avahi-daemon bionic ./ubuntu-bionic-amd64 http://de.archive.ubuntu.com/ubuntu
 
 # prepare archlinux base image
-pacstrap -i archlinux-rolling-amd64/ base avahi openssh
+pacstrap -i archlinux-rolling-amd64/ base avahi openssh python
 ```
 
 ```

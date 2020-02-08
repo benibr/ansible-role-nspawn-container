@@ -8,3 +8,4 @@ macvlan
 hostinterface
 veth
 hostnetwork
+existingnamespace
