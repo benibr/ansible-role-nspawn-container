@@ -87,7 +87,7 @@
   file:
     path: "/etc/systemd/{{ inventory_hostname }}.service.d"
     state: "directory"
-  when: use_existing_netns
+  when: use_existing_netns is defined
   delegate_to: "{{ physical_host }}"
 
   #- name: Slurp existing nspawn config
@@ -135,7 +135,7 @@
     group: "root"
     mode: "0644"
   delegate_to: "{{ physical_host }}"
-  when: use_existing_netns
+  when: use_existing_netns is defined
 
       #- name: Notice existing container config changed
       #  debug:
