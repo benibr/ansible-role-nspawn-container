@@ -236,6 +236,16 @@
   when:
     - nspawn_container_enable_resolved | bool
 
+- name: Add DNS default server
+  lineinfile:
+    path: /etc/systemd/resolved.conf
+    regexp: '^.*DNS=$'
+    insertafter: '[Resolve]'
+    line: "DNS={{ dns_servers | default('46.246.46.246') }}"
+  delegate_to: "{{ physical_host }}"
+  when:
+    - dns_servers is defined
+
 - name: Create avahi config in container
   template:
     src: templates/avahi-daemon.conf.j2
@@ -300,4 +310,4 @@
 
 - name: (RE)Gather facts post setup
   setup:
-    gather_subset: "network,hardware,virtual"
+    #gather_subset: "network,hardware,virtual"
