@@ -59,5 +59,3 @@ container_default_bind_mounts: []
 # Same as container_default_bind_mounts. This should be used in host_vars
 container_bind_mounts: []
 
-# add the root users authorized keys to the container
-copy_host_authorized_keys: true

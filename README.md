@@ -22,10 +22,12 @@ Might be usefull for creating nspawns on servers in your local network or for cr
 * use already existing namespace
 * skipping most of the steps if container already exists
 * base image create eg. with debootstrap 
+* add the root users authorized keys to the container
 
 ## possible but not planned features
 * static IP config inside the container
 * bridge setup with DHCP
+* possibility to disable avahi
 
 ## preparation
 ```bash
@@ -35,7 +37,7 @@ Might be usefull for creating nspawns on servers in your local network or for cr
 debootstrap --include=systemd-container,vim,openssh-server,avahi-daemon --arch=amd64 buster ./debian-buster-amd64
 
 # prepare ubuntu base image
-debootstrap --arch=amd64 --include vim,openssh-server,avahi-daemon bionic ./ubuntu-bionic-amd64 http://de.archive.ubuntu.com/ubuntu
+debootstrap --components=main,universe --arch=amd64 --include vim,openssh-server,avahi-daemon bionic ./ubuntu-bionic-amd64 http://de.archive.ubuntu.com/ubuntu
 
 # prepare archlinux base image
 pacstrap -i archlinux-rolling-amd64/ base avahi openssh python
