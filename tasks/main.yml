@@ -223,7 +223,7 @@
 
 - name: Add DNS default server
   lineinfile:
-    path: /etc/systemd/resolved.conf
+    path: "/var/lib/machines/{{ inventory_hostname }}/etc/systemd/resolved.conf"
     regexp: '^.*DNS=$'
     insertafter: '[Resolve]'
     line: "DNS={{ dns_servers | default('46.246.46.246') }}"
