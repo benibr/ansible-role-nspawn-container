@@ -5,21 +5,6 @@
   delegate_facts: true
   run_once: true
 
-- name: Pull systemd version
-  command: "systemctl --version"
-  changed_when: false
-  register: systemd_version
-  delegate_to: "{{ physical_host }}"
-  tags:
-    - skip_ansible_lint
-    - always
-
-- name: Set facts
-  set_fact:
-    nspawn_systemd_version: "{{ systemd_version.stdout_lines[0].split()[1] }}"
-  tags:
-    - always
-
 - name: Gather variables for each operating system
   include_vars: "{{ item }}"
   with_first_found:
