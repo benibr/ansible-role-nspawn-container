@@ -33,7 +33,7 @@ MachineID={{ systemd_escape.stdout | to_uuid }}
 BindReadOnly={{ ro_bind.host_path }}:{{ ro_bind.container_path | default(ro_bind.host_path) }}
 {% endfor %}
 {% for bind in container_default_bind_mounts | union(container_bind_mounts | default([])) %}
-Bind={{ bind.host_path }}:{{ bind.container_path }}
+Bind={{ bind.host_path }}:{{ bind.container_path | default(bind.host_path) }}
 {% endfor %}
 
 [Network]
