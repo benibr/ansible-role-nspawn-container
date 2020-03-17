@@ -22,6 +22,9 @@ nspawn_map: "{{ _nspawn_map | default({}) }}"
 # Enable or Disable the use of systemd-resolved. Option is Boolean.
 nspawn_container_enable_resolved: "{{ _nspawn_container_enable_resolved | default(true) }}"
 
+# create private user namespace for container
+private_users: true
+
 # Enable or Disable config preservation. If this is disabled a new configuration
 # file for the systemd container will be created, even if the container already
 # exists. When this is set to "false" the container will be restarted should the

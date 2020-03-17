@@ -15,8 +15,9 @@
 {% endfor %}
 
 [Exec]
-{% if ns.private_network == False %}
+{% if private_users == False %}
 PrivateUsers=no
+PrivateUsersChown=0
 {% else %}
 PrivateUsers=pick
 {% endif %}
