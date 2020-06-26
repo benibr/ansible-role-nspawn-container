@@ -1,4 +1,5 @@
 ---
+install_dependencies: false
 container_default_networks:
   default:
     type: none
