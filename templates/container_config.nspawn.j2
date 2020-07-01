@@ -31,11 +31,13 @@ MachineID={{ systemd_escape.stdout | to_uuid }}
 
 [Files]
 {% for ro_bind in container_default_ro_bind_mounts | union(container_ro_bind_mounts | default([])) %}
-BindReadOnly={{ ro_bind.host_path }}:{{ ro_bind.container_path | default(ro_bind.host_path) }}
+BindReadOnly={{ ro_bind.host_path }}{% if ro_bind.container_path is defined %}:{{ ro_bind.container_path }}{% endif %}
 {% endfor %}
+
 {% for bind in container_default_bind_mounts | union(container_bind_mounts | default([])) %}
-Bind={{ bind.host_path }}:{{ bind.container_path | default(bind.host_path) }}
+Bind={{ bind.host_path }}{% if bind.container_path is defined %}:{{ bind.container_path }}{% endif %}
 {% endfor %}
+
 
 [Network]
 {% if ns.private_network == False %}

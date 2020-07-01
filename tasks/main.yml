@@ -6,7 +6,7 @@
   run_once: true
 
 - name: Install Dependencies
-  delegate_to: {{ physical_host }}
+  delegate_to: "{{ physical_host }}"
   package:
     name: [ 'systemd-container', 'debootstrap']
   when: install_dependencies == true 
@@ -267,7 +267,7 @@
 - name: Start new container (enable)
   systemd:
     daemon_reload: yes
-    name: "systemd-nspawn@{{ systemd_escape.stdout }}"
+    name: "systemd-nspawn@{{ inventory_hostname }}"
     state: "{{ ((machinectl_container_clone is changed or container_config_new is changed) | default(false)) | ternary('restarted', 'started') }}"
     enabled: true
   register: machinectl_start
