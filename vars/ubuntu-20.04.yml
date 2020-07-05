@@ -1,0 +1,5 @@
+---
+_nspawn_map:
+  distro: ubuntu
+  arch: "{{ nspawn_architecture_mapping[container_architecture] }}"
+  release: focal

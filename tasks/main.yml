@@ -5,6 +5,12 @@
   delegate_facts: true
   run_once: true
 
+- name: Install Dependencies
+  delegate_to: {{ physical_host }}
+  package:
+    name: [ 'systemd-container', 'debootstrap']
+  when: install_dependencies == true 
+
 - name: Gather variables for each operating system
   include_vars: "{{ item }}"
   with_first_found:
