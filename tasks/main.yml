@@ -41,7 +41,7 @@
   changed_when: false
   delegate_to: "{{ physical_host }}"
 
-- name: Get image status
+- name: Get base image status
   command: machinectl image-status "{{ container_image }}"
   register: machinectl_image_status
   failed_when: false
@@ -67,6 +67,8 @@
     path: "/etc/systemd/nspawn"
     state: "directory"
   delegate_to: "{{ physical_host }}"
+  when:
+    - not nspawn_config_exists
 
 - name: Create dropin config directory
   file:
@@ -112,6 +114,7 @@
   when:
     - not nspawn_container_preserve_config | bool or
       not nspawn_config_exists.stat.exists | bool
+
 - name: Copy container service dropin config
   template:
     src: templates/systemd-netnamespace-dropin.conf.j2
@@ -137,8 +140,6 @@
 
 - name: Clone the base container image
   command: machinectl clone "{{ container_image }}" "{{ inventory_hostname }}"
-  when:
-    - machinectl_container_image_status.rc != 0
   register: machinectl_container_clone
   retries: 3
   delay: 2
@@ -146,6 +147,8 @@
   delegate_to: "{{ physical_host }}"
   tags:
     - skip_ansible_lint
+  when:
+    - machinectl_container_image_status.rc != 0
 
 - name: Create Container directories
   file:
@@ -156,6 +159,8 @@
     - "/var/lib/machines/{{ inventory_hostname }}/etc/systemd/network"
     - "/var/lib/machines/{{ inventory_hostname }}/var/lib/dbus"
   delegate_to: "{{ physical_host }}"
+  when:
+    - machinectl_container_image_status.rc == 0
 
 - name: Container RO bind path cleanup
   file:
@@ -209,6 +214,7 @@
     group: "root"
     mode: "0644"
   delegate_to: "{{ physical_host }}"
+  # when: not host_netns
 
 - name: Create resolved link
   file:
@@ -240,12 +246,14 @@
     mode: "0644"
   register: container_avahi_config
   delegate_to: "{{ physical_host }}"
+  #when: use_avahi is true
 
 - name: Create .ssh directory
   file:
     path: "/var/lib/machines/{{ inventory_hostname }}/root/.ssh"
     state: "directory"
   delegate_to: "{{ physical_host }}"
+  when: deploy_sshkey is defined
 
 - name: Copy authorized keys
   copy:
