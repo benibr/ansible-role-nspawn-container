@@ -1,12 +1,18 @@
 ---
+# install packages which are needed on the physical_host
 install_dependencies: false
+
+# what kind of network connection should the container have
+# arbitray name must be set to distinguish multiple networks
 container_default_networks:
   default:
     type: none
+
 # same as container_default_networks but should be used in host_vars
 container_networks: {}
 
 # Defined CPU architecture map
+# used for container templates names
 nspawn_architecture_mapping:
   x86_64: amd64
   ppc64le: ppc64el
@@ -20,26 +26,24 @@ nspawn_architecture_mapping:
 #    release: "{{ hostvars[physical_host]['ansible_distribution_version'] }}"
 nspawn_map: "{{ _nspawn_map | default({}) }}"
 
-# Enable or Disable the use of systemd-resolved. Option is Boolean.
+# Enable or disable the use of systemd-resolved inside the container
+# Option is Boolean
 nspawn_container_enable_resolved: "{{ _nspawn_container_enable_resolved | default(true) }}"
+enable_llmnr: "{{ _nspawn_container_enable_resolved | default(true) }}"
+enable_avahi: "{{ _nspawn_container_enable_resolved | default(true) }}"
 
-# create private user namespace for container
+# create user namespace for container to serperate it from users on the physical host
 private_users: true
 
-# Enable or Disable config preservation. If this is disabled a new configuration
-# file for the systemd container will be created, even if the container already
-# exists. When this is set to "false" the container will be restarted should the
-# configuration task(s) result in change.
-nspawn_container_preserve_config: true
-
-# === General container defaults ===============================================
+# hostnames of 
 container_host: "{{ hostvars[inventory_hostname]['physical_host'] | default('localhost') }}"
 container_architecture: "{{ hostvars[container_host]['ansible_architecture'] | lower }}"
 
-# Name of the on-disk image to use for deployment.
+# Name of the container tempalte under /var/lib/machines
 container_image: "{{ nspawn_map['distro'] }}-{{ nspawn_map['release'] }}-{{ nspawn_map['arch'] }}"
 
-# The domain the containers will exist within. Every container will have a FQDN consisting of
+# The mDNS domain the containers will exist within. Only relevant it avahi is enabled.
+# Every container will have a FQDN consisting of
 # <container>.<host>.<container_domain>
 # where container is the hostname of the container
 #       host is the hostname of the physical host
@@ -48,18 +52,18 @@ container_image: "{{ nspawn_map['distro'] }}-{{ nspawn_map['release'] }}-{{ nspa
 # configure avahi accordingly.
 container_domain: "local"
 
-# Container Default Read-Only bind mounts. This option will be merged with the container
-# ro bind mounts.
+# Container Default Read-Only bind mounts. This option will be merged with the 
+# container_ro_bind_mounts.
 container_default_ro_bind_mounts:
   - host_path: '/etc/localtime'
+  # container_path: '/etc/localtime' # defaults to host_path is not set
 
 # Same as container_default_ro_bind_mounts. This should be used in host_vars
 container_ro_bind_mounts: []
 
-# Container Default bind mounts. This option will be merged with the container
-# bind mounts.
+# Container Default bind mounts. Works as container_default_ro_bind_mounts.
+# This option will be merged with the container_bind_mounts.
 container_default_bind_mounts: []
 
 # Same as container_default_bind_mounts. This should be used in host_vars
 container_bind_mounts: []
-
