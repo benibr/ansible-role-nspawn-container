@@ -19,3 +19,6 @@
 # version 4
 ## todo
 * bootstrap ansible ready basic container
+
+
+LLMNR option? https://lists.freedesktop.org/archives/systemd-devel/2015-March/028942.html
