@@ -1,5 +1,0 @@
-right now avahi must be installed in the base image
-
-avahi config inside container not relaoded
-
-avahi of host cannot resolv .host.local domains, although container can discover their host
