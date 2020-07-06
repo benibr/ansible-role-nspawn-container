@@ -28,9 +28,9 @@ nspawn_map: "{{ _nspawn_map | default({}) }}"
 
 # Enable or disable the use of systemd-resolved inside the container
 # Option is Boolean
-nspawn_container_enable_resolved: "{{ _nspawn_container_enable_resolved | default(true) }}"
-enable_llmnr: "{{ _nspawn_container_enable_resolved | default(true) }}"
-enable_avahi: "{{ _nspawn_container_enable_resolved | default(true) }}"
+nspawn_container_enable_resolved: true
+enable_llmnr: true
+enable_avahi: false
 
 # create user namespace for container to serperate it from users on the physical host
 private_users: true

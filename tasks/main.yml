@@ -5,6 +5,7 @@
   delegate_facts: true
   run_once: true
 
+  # fixme: this should become a prepare physical_host play or something like that
 - name: Install Dependencies
   delegate_to: "{{ physical_host }}"
   package:
@@ -24,14 +25,14 @@
   tags:
     - always
 
-- name: Escape quote container name
-  command: "systemd-escape {{ inventory_hostname }}"
-  changed_when: false
-  register: systemd_escape
-  delegate_to: "{{ physical_host }}"
-  tags:
-    - skip_ansible_lint
-    - always
+      #- name: Escape quote container name
+      #  command: "systemd-escape {{ inventory_hostname }}"
+      #  changed_when: false
+      #  register: systemd_escape
+      #  delegate_to: "{{ physical_host }}"
+      #  tags:
+      #    - skip_ansible_lint
+      #    - always
 
 - name: Get container status
   command: machinectl status "{{ inventory_hostname }}"
@@ -65,7 +66,8 @@
 - name: Locate nspawn config
   stat:
     path: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
-  register: nspawn_config_exists
+  register: nspawn_config
+  changed_when: false
   delegate_to: "{{ physical_host }}"
 
 - name: Create nspawn directory
@@ -74,20 +76,13 @@
     state: "directory"
   delegate_to: "{{ physical_host }}"
   when:
-    - not nspawn_config_exists
+    - not nspawn_config.stat.exists
 
 - name: Create dropin config directory
   file:
     path: "/etc/systemd/{{ inventory_hostname }}.service.d"
     state: "directory"
   when: use_existing_netns is defined
-  delegate_to: "{{ physical_host }}"
-
-- name: Slurp existing nspawn config
-  stat:
-    path: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
-  register: nspawn_config
-  changed_when: false
   delegate_to: "{{ physical_host }}"
 
 - name: Copy container config
@@ -219,7 +214,7 @@
     mode: "0644"
   register: container_avahi_config
   delegate_to: "{{ physical_host }}"
-  when: enable_avahi is true
+  when: enable_avahi == true
 
 - name: Create .ssh directory
   file:
