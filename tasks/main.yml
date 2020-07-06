@@ -83,31 +83,13 @@
   when: use_existing_netns is defined
   delegate_to: "{{ physical_host }}"
 
-  #- name: Slurp existing nspawn config
-  #  slurp:
-  #    src: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
-  #  register: nspawn_config
-  #  changed_when: false
-  #  delegate_to: "{{ physical_host }}"
-  #
-  ## Check for the existance of an nspawn configuration file. If found slurp it up
-  ## and use it as the base nspawn config file with the option to config template
-  ## override.
-  #- name: Copy container config (existing)
-  #  copy:
-  #    content: "{{ nspawn_config.content | b64decode }}"
-  #    dest: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
-  #    owner: "root"
-  #    group: "root"
-  #    mode: "0644"
-  #  register: container_config_existing
-  #  delegate_to: "{{ physical_host }}"
-  #  when:
-  #    - nspawn_container_preserve_config | bool
-  #    - nspawn_config_exists.stat.exists | bool
+- name: Slurp existing nspawn config
+  stat:
+    path: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
+  register: nspawn_config
+  changed_when: false
+  delegate_to: "{{ physical_host }}"
 
-# If no nspawn configuration file exists, create a new config file using the
-# default template.
 - name: Copy container config
   template:
     src: templates/container_config.nspawn.j2
@@ -117,9 +99,7 @@
     mode: "0644"
   register: container_config_new
   delegate_to: "{{ physical_host }}"
-  when:
-    - not nspawn_container_preserve_config | bool or
-      not nspawn_config_exists.stat.exists | bool
+  when: not nspawn_config.stat.exists | bool
 
 - name: Copy container service dropin config
   template:
@@ -130,19 +110,6 @@
     mode: "0644"
   delegate_to: "{{ physical_host }}"
   when: use_existing_netns is defined
-
-      #- name: Notice existing container config changed
-      #  debug:
-      #    msg: >-
-      #      The existing container config has changed. While this change has been
-      #      noticed, no restart has been performed. By not restarting the container
-      #      the system is preserving the state of the environment by not causing
-      #      unexpected downtime. For these changes to go into effect the container
-      #      must be restarted. This can be done using the following command,
-      #      `machinectl [poweroff|start] {{ inventory_hostname }}`. To disable the
-      #      configation saving set `nspawn_container_preserve_config` to false.
-      #  when:
-      #    - container_config_existing is changed
 
 - name: Clone the base container image
   command: machinectl clone "{{ container_image }}" "{{ inventory_hostname }}"
@@ -252,7 +219,7 @@
     mode: "0644"
   register: container_avahi_config
   delegate_to: "{{ physical_host }}"
-  #when: use_avahi is true
+  when: enable_avahi is true
 
 - name: Create .ssh directory
   file:
