@@ -1,24 +1,13 @@
-# Version 1
 ## todo
-## done
-* mv if
-* create container
-* veth
-* macvlan
-
-# version 2
-## todo
+* variable to control avahi configs
+* variable to control systemd-resolved
+* tempalte systemd-resolved
+  * variable to control LLMNR
+* hostsetup
+  * bootstrap ansible ready basic container
+    * install avahi if activate 
 * assign veth ip
 * macvlan dhcp + report
 * assign macvlan ip
-
-# version 3
-## todo
-* config avahi
-
-# version 4
-## todo
-* bootstrap ansible ready basic container
-
 
 LLMNR option? https://lists.freedesktop.org/archives/systemd-devel/2015-March/028942.html
