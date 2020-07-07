@@ -25,14 +25,14 @@
   tags:
     - always
 
-      #- name: Escape quote container name
-      #  command: "systemd-escape {{ inventory_hostname }}"
-      #  changed_when: false
-      #  register: systemd_escape
-      #  delegate_to: "{{ physical_host }}"
-      #  tags:
-      #    - skip_ansible_lint
-      #    - always
+- name: Escape quote container name
+  command: "systemd-escape {{ inventory_hostname }}"
+  changed_when: false
+  register: systemd_escape
+  delegate_to: "{{ physical_host }}"
+  tags:
+    - skip_ansible_lint
+    - always
 
 - name: Get container status
   command: machinectl status "{{ inventory_hostname }}"
@@ -184,6 +184,7 @@
   delegate_to: "{{ physical_host }}"
   # when: not host_netns
 
+  # fixme: this should copy /etc/resolv.conf if resovled is not used
 - name: Create resolved link
   file:
     src: "/var/run/systemd/resolve/resolv.conf"
@@ -204,6 +205,16 @@
   delegate_to: "{{ physical_host }}"
   when:
     - dns_servers is defined
+
+- name: Enable LLMNR
+  lineinfile:
+    path: "/var/lib/machines/{{ inventory_hostname }}/etc/systemd/resolved.conf"
+    regexp: '^.*LLNMR=$'
+    insertafter: '[Resolve]'
+    line: "LLMNR=yes"
+  delegate_to: "{{ physical_host }}"
+  when:
+    - enable_llmnr is defined
 
 - name: Create avahi config in container
   template:
