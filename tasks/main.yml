@@ -184,6 +184,7 @@
     owner: "root"
     group: "root"
     mode: "0644"
+  notify: restart systemd-networkd
   delegate_to: "{{ physical_host }}"
   # when: not host_netns
 
@@ -195,6 +196,7 @@
     force: true
     follow: false
     state: link
+  notify: restart systemd-resolved
   delegate_to: "{{ physical_host }}"
   when:
     - nspawn_container_enable_resolved | bool
@@ -205,6 +207,7 @@
     regexp: '^.*DNS=$'
     insertafter: '[Resolve]'
     line: "DNS={{ dns_servers | default('46.246.46.246') }}"
+  notify: restart systemd-resolved
   delegate_to: "{{ physical_host }}"
   when:
     - dns_servers is defined
@@ -215,6 +218,7 @@
     regexp: '^.*LLNMR=$'
     insertafter: '[Resolve]'
     line: "LLMNR=yes"
+  notify: restart systemd-resolved
   delegate_to: "{{ physical_host }}"
   when:
     - enable_llmnr is defined
@@ -226,6 +230,7 @@
     owner: "root"
     group: "root"
     mode: "0644"
+  notify: restart avahi
   register: container_avahi_config
   delegate_to: "{{ physical_host }}"
   when: enable_avahi == true
@@ -235,6 +240,7 @@
     path: "/var/lib/machines/{{ inventory_hostname }}/root/.ssh"
     state: "directory"
   delegate_to: "{{ physical_host }}"
+  notify: restart ssh
   when: deploy_sshkey is defined
 
 - name: Copy authorized keys
@@ -245,6 +251,7 @@
     group: root
     mode: "0640"
     force: no
+  notify: restart ssh
   delegate_to: "{{ physical_host }}"
   when: deploy_sshkey is defined
 
@@ -291,6 +298,7 @@
   package:
     name: 'libnss-resolve'
     state: present
+  notify: restart systemd-resolved
   when:
     - nspawn_container_enable_resolved | bool
 
@@ -300,4 +308,3 @@
     state: present
   when:
     - enable_avahi | bool
-

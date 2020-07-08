@@ -7,3 +7,11 @@ handlers:
     service:
       name: systemd-networkd
       state: restarted
+  - name: restart ssh
+    service:
+      name: ssh
+      state: restarted
+  - name: restart avahi-daemon
+    service:
+      name: avahi-daemon
+      state: restarted
