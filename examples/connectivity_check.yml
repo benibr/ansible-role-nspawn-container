@@ -9,7 +9,7 @@
     - name: Ping the container itself
       ping:
     - name: Test connectivity to container
-      command: "ping -c {{ physical_host }}.local"
+      command: "ping -c 1 {{ physical_host }}"
       register: machinectl_ping
       retries: 3
       delay: 3
@@ -19,7 +19,7 @@
         - skip_ansible_lint
 
     - name: Test connectivity to internet via IPv4
-      command: "ping -4 -c 1 zeroconf.org"
+      command: "ping -4 -c 1 {{ physical_host }}"
       register: machinectl_ping
       retries: 3
       delay: 3
@@ -28,7 +28,7 @@
         - skip_ansible_lint
 
     - name: Test connectivity to internet via IPv6
-      command: "ping -6 -c 1 zeroconf.org"
+      command: "ping -6 -c 1 {{ physical_host }}"
       register: machinectl_ping
       retries: 3
       delay: 1

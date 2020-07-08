@@ -1,5 +1,5 @@
 ---
-# This playbook removes and recreates three example containers 
+# This playbook removes and recreates example containers 
 - name: Gather host facts
   hosts: physical_testhost
   gather_facts: true

@@ -5,6 +5,9 @@
   delegate_facts: true
   run_once: true
 
+  #- include:
+  # irgendwas mit preprare host
+
   # fixme: this should become a prepare physical_host play or something like that
 - name: Install Dependencies
   delegate_to: "{{ physical_host }}"
@@ -283,3 +286,18 @@
 - name: (RE)Gather facts post setup
   setup:
     #gather_subset: "network,hardware,virtual"
+
+- name: Install NSS resolve lib
+  package:
+    name: 'libnss-resolve'
+    state: present
+  when:
+    - nspawn_container_enable_resolved | bool
+
+- name: Install NSS mdns lib
+  package:
+    name: 'libnss-mdns'
+    state: present
+  when:
+    - enable_avahi | bool
+
