@@ -5,15 +5,8 @@
   delegate_facts: true
   run_once: true
 
-  #- include:
-  # irgendwas mit preprare host
-
-  # fixme: this should become a prepare physical_host play or something like that
-- name: Install Dependencies
-  delegate_to: "{{ physical_host }}"
-  package:
-    name: [ 'systemd-container', 'debootstrap']
-  when: install_dependencies == true 
+- name: "prepare physical host"
+  include: "prepare_physical_host.yml"
 
 - name: Gather variables for each operating system
   include_vars: "{{ item }}"
