@@ -4,18 +4,22 @@
     name: systemd-resolved
     state: restarted
   failed_when: false
+  delegate_to: "{{ physical_host }}"
 - name: restart systemd-networkd
   service:
     name: systemd-networkd
     state: restarted
   failed_when: false
+  delegate_to: "{{ physical_host }}"
 - name: restart ssh
   service:
     name: ssh
     state: restarted
   failed_when: false
+  delegate_to: "{{ physical_host }}"
 - name: restart avahi-daemon
   service:
     name: avahi-daemon
     state: restarted
   failed_when: false
+  delegate_to: "{{ physical_host }}"

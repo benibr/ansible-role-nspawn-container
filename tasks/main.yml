@@ -7,6 +7,7 @@
 
 - name: "prepare physical host"
   include: "prepare_physical_host.yml"
+  when: prepare_physical_host == true
 
 - name: Gather variables for each operating system
   include_vars: "{{ item }}"
@@ -51,12 +52,19 @@
   changed_when: false
   delegate_to: "{{ physical_host }}"
 
+- name: "create base image"
+  include: "create_base_image.yml"
+  when:
+    - machinectl_container_image_status.rc != 0
+    - create_base_image == true
+
 - name: Fail if base image does not exist
   fail:
     msg: >
-      The base container image "{{ container_image }}" does not exist. Check
-      the name and try again.
+      The base container image "{{ container_image }}" does not exist and
+      'create_base_image' is set to false. Cannot create container
   when:
+    - create_base_image == false
     - machinectl_image_status.rc != 0
 
 - name: Locate nspawn config

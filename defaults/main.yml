@@ -1,6 +1,9 @@
 ---
 # install packages which are needed on the physical_host
-install_dependencies: false
+prepare_physical_host: false
+
+# create baseimage on physical host with debootsrap or similar
+create_base_image: true
 
 # what kind of network connection should the container have
 # arbitray name must be set to distinguish multiple networks
