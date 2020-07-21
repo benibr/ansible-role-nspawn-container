@@ -1,6 +1,6 @@
 ---
 # install packages which are needed on the physical_host
-prepare_physical_host: false
+prepare_physical_host: true
 
 # create baseimage on physical host with debootsrap or similar
 create_base_image: true

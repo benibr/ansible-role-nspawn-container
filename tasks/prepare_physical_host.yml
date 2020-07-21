@@ -3,7 +3,6 @@
   delegate_to: "{{ physical_host }}"
   package:
     name: [ 'systemd-container', 'debootstrap', 'libnss-mymachines' ]
-  when: install_dependencies == true 
   # needs when and other distros
 - service:
     name: systemd-networkd
