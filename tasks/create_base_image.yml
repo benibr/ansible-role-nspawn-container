@@ -1,0 +1,42 @@
+---
+- name: "debootstrap ubuntu container"
+  command: 'debootstrap --components=main,universe --arch=amd64 --include vim,openssh-server,avahi-daemon focal /var/lib/machines/ubuntu-focal-amd64 http://de.archive.ubuntu.com/ubuntu'
+  args:
+    creates: /var/lib/machines/ubuntu-focal-amd64
+  delegate_to: "{{ physical_host }}"
+
+  # enable systemd services inside the base container
+  # we cannot use systemd module here, so we create the symlinks
+- name: "pre enable systemd-networkd inside container"
+  file:
+    state: directory
+    name: "/var/lib/machines/ubuntu-focal-amd64/etc/systemd/system/network-online.target.wants"
+  delegate_to: "{{ physical_host }}"
+- file:
+    src: "{{ item.src }}"
+    name: "{{ item.name }}"
+    state: link
+    force: true
+  delegate_to: "{{ physical_host }}"
+  with_items:
+    - { name: "/var/lib/machines/ubuntu-focal-amd64/etc/systemd/system/dbus-org.freedesktop.network1.service", 
+        src: "/lib/systemd/system/systemd-networkd.service" }
+    - { name: "/var/lib/machines/ubuntu-focal-amd64/etc/systemd/system/multi-user.target.wants/systemd-networkd.service",
+        src: "/lib/systemd/system/systemd-networkd.service" }
+    - { name: "/var/lib/machines/ubuntu-focal-amd64/etc/systemd/system/sockets.target.wants/systemd-networkd.socket",
+        src: "/lib/systemd/system/systemd-networkd.socket" }
+    - { name: "/var/lib/machines/ubuntu-focal-amd64/etc/systemd/system/network-online.target.wants/systemd-networkd-wait-online.service",
+        src: "/lib/systemd/system/systemd-networkd-wait-online.service" }
+
+- name: "pre enable systemd-resolved inside container"
+  file:
+    src: "{{ item.src }}"
+    name: "{{ item.name }}"
+    state: link
+    force: true
+  delegate_to: "{{ physical_host }}"
+  with_items:
+    - { name: "/var/lib/machines/ubuntu-focal-amd64/etc/systemd/system/dbus-org.freedesktop.resolve1.service",
+        src: "/lib/systemd/system/systemd-resolved.service" }
+    - { name: "/var/lib/machines/ubuntu-focal-amd64/etc/systemd/system/multi-user.target.wants/systemd-resolved.service",
+        src: "/lib/systemd/system/systemd-resolved.service" }
