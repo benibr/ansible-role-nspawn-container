@@ -4,6 +4,15 @@
   package:
     name: [ 'systemd-container', 'debootstrap', 'libnss-mymachines' ]
   # needs when and other distros
+- name: Enable LLMNR
+  lineinfile:
+    path: "/etc/systemd/resolved.conf"
+    regexp: '^.*LLNMR=$'
+    insertafter: '[Resolve]'
+    line: "LLMNR=yes"
+  delegate_to: "{{ physical_host }}"
+  when:
+    - enable_llmnr is defined
 - service:
     name: systemd-networkd
     state: started
@@ -11,6 +20,6 @@
   delegate_to: "{{ physical_host }}"
 - service:
     name: systemd-resolved
-    state: started
+    state: restarted
     enabled: yes
   delegate_to: "{{ physical_host }}"
