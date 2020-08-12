@@ -185,7 +185,7 @@
     owner: "root"
     group: "root"
     mode: "0644"
-  notify: restart systemd-networkd
+  notify: reload systemd-networkd
   delegate_to: "{{ physical_host }}"
   # when: not host_netns
 
