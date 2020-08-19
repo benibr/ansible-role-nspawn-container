@@ -9,3 +9,7 @@ container_networks:
     address: "{{ ansible_host }}"
     netmask: "255.255.255.0"
     type: veth
+    ports:
+      - protocol: tcp
+        host_port: 80
+        container_port: 8080

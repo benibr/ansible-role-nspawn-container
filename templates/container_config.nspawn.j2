@@ -2,6 +2,7 @@
 {% set ns = namespace(veth=False, private_network=True) %}
 {% set macvlans=[] %}
 {% set hostinterfaces=[] %}
+{% set ports=[] %}
 {% for network,parameters in container_combined_networks.items() %}
 {%   if parameters['type'] == 'host' %}
 {%     set ns.private_network = False %}
@@ -11,6 +12,11 @@
 {%     set ns.veth = True %}
 {%   elif parameters['type'] == 'hostinterface' %}
 {%     set _ = hostinterfaces.append(parameters['interface']) %}
+{%   endif %}
+{%   if parameters['ports'] is defined %}
+{%     for port in parameters['ports'] %}
+{%       set _ = ports.append(port) %}
+{%     endfor %}
 {%   endif %}
 {% endfor %}
 
@@ -38,12 +44,14 @@ BindReadOnly={{ ro_bind.host_path }}{% if ro_bind.container_path is defined %}:{
 Bind={{ bind.host_path }}{% if bind.container_path is defined %}:{{ bind.container_path }}{% endif %}
 {% endfor %}
 
-
 [Network]
 {% if ns.private_network == False %}
 Private=no
 {% else %}
 Private=yes
+{%   for port in ports %}
+Port={{ port['protocol'] }}:{{ port['host_port'] }}:{{ port['container_port'] | default(port['host_port'])}}
+{%   endfor %}
 {%   if ns.veth == True %}
 VirtualEthernet=yes
 {%   endif %}
