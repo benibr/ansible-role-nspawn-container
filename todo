@@ -1,7 +1,0 @@
-## todo
-* hostsetup
-  * bootstrap ansible ready basic container
-    * install avahi if activate 
-* assign veth ip
-* macvlan dhcp + report
-* assign macvlan ip

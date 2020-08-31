@@ -178,6 +178,8 @@
   remote_user: root
   delegate_to: "{{ physical_host }}"
 
+### network / DNS config
+# may move to extra file
 - name: Create systemd-network default config
   template:
     src: templates/systemd-networkd_default.network.j2
@@ -188,6 +190,33 @@
   notify: reload systemd-networkd
   delegate_to: "{{ physical_host }}"
   # when: not host_netns
+
+- name: "copy nspawn network configs"
+  copy: src={{ item.src }} dest={{ item.dest }}
+  with_items:
+    - { src: '/var/lib/machines/{{ inventory_hostname }}/lib/systemd/network/80-container-host0.network', dest: '/var/lib/machines/{{ inventory_hostname }}/etc/systemd/network/80-container-host0.network' }
+    - { src: '/lib/systemd/network/80-container-ve.network', dest: '/etc/systemd/network/80-container-ve.network' }
+  when:
+    - enable_linklocal == false
+  delegate_to: "{{ physical_host }}"
+
+- name: disable Linklocal IPs for container
+  lineinfile:
+    path: /var/lib/machines/{{ inventory_hostname }}/etc/systemd/network/80-container-host0.network
+    regexp: 'LinkLocalAddressing='
+    line: 'LinkLocalAddressing=no'
+  when:
+    - enable_linklocal == false
+  delegate_to: "{{ physical_host }}"
+
+- name: disable Linklocal IPs for host
+  lineinfile:
+    path: /etc/systemd/network/80-container-ve.network
+    regexp: 'LinkLocalAddressing='
+    line: 'LinkLocalAddressing=no'
+  when:
+    - enable_linklocal == false
+  delegate_to: "{{ physical_host }}"
 
   # fixme: this should copy /etc/resolv.conf if resovled is not used
 - name: Create resolved link

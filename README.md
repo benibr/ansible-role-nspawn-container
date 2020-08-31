@@ -20,11 +20,11 @@ Might be usefull for creating nspawns on servers in your local network or for cr
 * bind mounts to the container
 * no network namespace mode (like chroot)
 * basic SSH key setup inside the container
+* base image create eg. with debootstrap 
 
 ## planned feature
 * use already existing namespace
 * skipping most of the steps if container already exists
-* base image create eg. with debootstrap 
 * add the root users authorized keys to the container
 
 ## possible but not planned features

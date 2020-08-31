@@ -5,6 +5,9 @@ prepare_physical_host: true
 # create baseimage on physical host with debootsrap or similar
 create_base_image: true
 
+# when running multiple containers LL can be disruptive
+enable_linklocal: false
+
 # what kind of network connection should the container have
 # arbitray name must be set to distinguish multiple networks
 container_default_networks:
