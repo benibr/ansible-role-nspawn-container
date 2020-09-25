@@ -5,10 +5,6 @@
   delegate_facts: true
   run_once: true
 
-- name: "prepare physical host"
-  include: "prepare_physical_host.yml"
-  when: prepare_physical_host == true
-
 - name: Gather variables for each operating system
   include_vars: "{{ item }}"
   with_first_found:
@@ -21,6 +17,10 @@
       skip: true
   tags:
     - always
+
+- name: "prepare physical host"
+  include: "prepare_physical_host.yml"
+  when: prepare_physical_host == true
 
 - name: Escape quote container name
   command: "systemd-escape {{ inventory_hostname }}"
@@ -192,7 +192,7 @@
   # when: not host_netns
 
 - name: "copy nspawn network configs"
-  copy: src={{ item.src }} dest={{ item.dest }}
+  copy: src={{ item.src }} dest={{ item.dest }} remote_src=yes
   with_items:
     - { src: '/var/lib/machines/{{ inventory_hostname }}/lib/systemd/network/80-container-host0.network', dest: '/var/lib/machines/{{ inventory_hostname }}/etc/systemd/network/80-container-host0.network' }
     - { src: '/lib/systemd/network/80-container-ve.network', dest: '/etc/systemd/network/80-container-ve.network' }
@@ -204,7 +204,7 @@
   lineinfile:
     path: /var/lib/machines/{{ inventory_hostname }}/etc/systemd/network/80-container-host0.network
     regexp: 'LinkLocalAddressing='
-    line: 'LinkLocalAddressing=no'
+    line: 'LinkLocalAddressing=ipv6'
   when:
     - enable_linklocal == false
   delegate_to: "{{ physical_host }}"
@@ -213,7 +213,7 @@
   lineinfile:
     path: /etc/systemd/network/80-container-ve.network
     regexp: 'LinkLocalAddressing='
-    line: 'LinkLocalAddressing=no'
+    line: 'LinkLocalAddressing=ipv6'
   when:
     - enable_linklocal == false
   delegate_to: "{{ physical_host }}"
@@ -260,7 +260,7 @@
     owner: "root"
     group: "root"
     mode: "0644"
-  notify: restart avahi
+  notify: restart avahi-daemon
   register: container_avahi_config
   delegate_to: "{{ physical_host }}"
   when: enable_avahi == true
@@ -326,7 +326,7 @@
 
 - name: Install NSS resolve lib
   package:
-    name: 'libnss-resolve'
+    name: "{{ libnss-resolve-pkg | default('libnss-resolve') }}"
     state: present
   notify: restart systemd-resolved
   when:
@@ -334,7 +334,7 @@
 
 - name: Install NSS mdns lib
   package:
-    name: 'libnss-mdns'
+    name: "{{ libnss-mdns-pkg | default('libnss-mdns') }}"
     state: present
   when:
     - enable_avahi | bool

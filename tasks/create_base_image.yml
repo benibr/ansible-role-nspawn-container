@@ -4,6 +4,7 @@
   args:
     creates: /var/lib/machines/ubuntu-focal-amd64
   delegate_to: "{{ physical_host }}"
+  # needs different OS types
 
   # enable systemd services inside the base container
   # we cannot use systemd module here, so we create the symlinks
