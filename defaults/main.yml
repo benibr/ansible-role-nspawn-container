@@ -8,6 +8,9 @@ create_base_image: true
 # when running multiple containers LL can be disruptive
 enable_linklocal: false
 
+# configure SSH inside the container to enable key based root login
+enable_ssh: true
+
 # what kind of network connection should the container have
 # arbitray name must be set to distinguish multiple networks
 container_default_networks:

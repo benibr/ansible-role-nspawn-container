@@ -1,0 +1,29 @@
+---
+- name: Create .ssh directory
+  file:
+    path: "/var/lib/machines/{{ inventory_hostname }}/root/.ssh"
+    state: "directory"
+  delegate_to: "{{ physical_host }}"
+  notify: restart ssh
+  when: deploy_sshkey is defined
+
+- name: Copy authorized keys
+  copy:
+    content: "{{ deploy_sshkey }}"
+    dest: "/var/lib/machines/{{ inventory_hostname }}/root/.ssh/authorized_keys"
+    owner: root
+    group: root
+    mode: "0640"
+    force: no
+  notify: restart ssh
+  delegate_to: "{{ physical_host }}"
+  when: deploy_sshkey is defined
+
+- name: allow root login via SSH
+  lineinfile:
+    path: /var/lib/machines/{{ inventory_hostname }}/etc/ssh/sshd_config
+    regexp: '^PermitRootLogin'
+    line: 'PermitRootLogin prohibit-password'
+  when:
+    - enable_linklocal == false
+  delegate_to: "{{ physical_host }}"

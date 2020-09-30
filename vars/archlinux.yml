@@ -4,6 +4,6 @@ _nspawn_map:
   arch: "{{ nspawn_architecture_mapping[container_architecture] }}"
   release: rolling
 libnss_mdns_pkg: nss-mdns 
-libnss_resolve_pkg: nss-resolve
+libnss_resolve_pkg: systemd
 libnss_mymachines_pkg: systemd
 systemd_container_pkg: systemd
