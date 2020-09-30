@@ -2,7 +2,7 @@
 - name: "install dependencies on pyhsical host"
   delegate_to: "{{ physical_host }}"
   package:
-    name: [ "{{ systemd_container_pkg | default('systemd-container') }}", 'debootstrap', "{{ libnss_mymachines_pkg | default('nss-mymachines') }}" ]
+    name: [ "{{ systemd_container_pkg | default('systemd-container') }}", 'debootstrap', "{{ libnss_mymachines_pkg | default('libnss-mymachines') }}" ]
 - name: Enable LLMNR
   lineinfile:
     path: "/etc/systemd/resolved.conf"
