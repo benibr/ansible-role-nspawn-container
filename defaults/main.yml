@@ -48,7 +48,7 @@ private_users: true
 container_host: "{{ hostvars[inventory_hostname]['physical_host'] | default('localhost') }}"
 container_architecture: "{{ hostvars[container_host]['ansible_architecture'] | lower }}"
 
-# Name of the container tempalte under /var/lib/machines
+# Name of the container template under /var/lib/machines
 container_image: "{{ nspawn_map['distro'] }}-{{ nspawn_map['release'] }}-{{ nspawn_map['arch'] }}"
 
 # The mDNS domain the containers will exist within. Only relevant it avahi is enabled.
