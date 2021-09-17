@@ -266,6 +266,18 @@
   when: enable_avahi == true
   # TODO: enable avahi
 
+- name: Disable avahi config in container
+  file:
+    path: "{{ item }}"
+    state: absent
+  delegate_to: "{{ physical_host }}"
+  when: enable_avahi == false
+  with_items:
+    - "/etc/systemd/system/multi-user.target.wants/avahi-daemon.service"
+    - "/etc/systemd/system/avahi-daemon.service"
+    - "/etc/systemd/system/sockets.target.wants/avahi-daemon.socket"
+    - "/etc/systemd/system/avahi-daemon.socket"
+
 - name: "config SSH inside the container"
   include: "ssh_config.yml"
   when: enable_ssh == true
