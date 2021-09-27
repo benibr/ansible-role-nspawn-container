@@ -236,7 +236,7 @@
     path: "/var/lib/machines/{{ inventory_hostname }}/etc/systemd/resolved.conf"
     regexp: '^.*DNS=$'
     insertafter: '[Resolve]'
-    line: "DNS={{ dns_servers | default('46.246.46.246') }}"
+    line: "DNS={{ dns_servers | default('9.9.9.9 2620:fe::fe') }}"
   notify: restart systemd-resolved
   delegate_to: "{{ physical_host }}"
   when:
