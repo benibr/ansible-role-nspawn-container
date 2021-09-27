@@ -1,9 +1,0 @@
----
-_nspawn_map:
-  distro: opensuse
-  arch: "{{ nspawn_architecture_mapping[container_architecture] }}"
-  release: "{{ hostvars[physical_host]['ansible_distribution_version'] }}"
-
-# This version of SUSE does not have access to systemd-resolved. This will need
-# to remained disabled until it does.
-_nspawn_container_enable_resolved: false
