@@ -1,21 +1,21 @@
 ---
 - name: "create base image directory"
-  command: "mkdir /var/lib/machines/{{ container_image }}"
+  command: "mkdir /var/lib/machines/{{ base_image }}"
   args:
-    creates: "/var/lib/machines/{{ container_image }}"
+    creates: "/var/lib/machines/{{ base_image }}"
   delegate_to: "{{ physical_host }}"
 
 - name: "debootstrap ubuntu container"
-  command: 'debootstrap --components=main,universe --arch=amd64 --include vim,openssh-server,avahi-daemon,python3-apt,dirmngr,gpg-agent,apt-transport-https focal /var/lib/machines/{{ container_image }} http://de.archive.ubuntu.com/ubuntu'
+  command: 'debootstrap --components=main,universe --arch=amd64 --include vim,openssh-server,avahi-daemon,python3-apt,dirmngr,gpg-agent,apt-transport-https focal /var/lib/machines/{{ base_image }} http://de.archive.ubuntu.com/ubuntu'
   args:
-    creates: "/var/lib/machines/{{ container_image }}"
+    creates: "/var/lib/machines/{{ base_image }}"
   delegate_to: "{{ physical_host }}"
-  when: container_image == "ubuntu-focal-amd64"
+  when: base_image == "ubuntu-focal-amd64"
 
 - name: "bootstrap archlinux container"
-  command: 'pacstrap /var/lib/machines/{{ container_image }} base vim openssh avahi python'
+  command: 'pacstrap /var/lib/machines/{{ base_image }} base vim openssh avahi python'
   delegate_to: "{{ physical_host }}"
-  when: container_image == "archlinux-rolling-amd64"
+  when: base_image == "archlinux-rolling-amd64"
 
   # enable systemd services inside the base container
   # we cannot use systemd module here, so we create the symlinks
@@ -24,9 +24,9 @@
     state: directory
     name: "{{ item }}"
   with_items:
-    - "/var/lib/machines/{{ container_image }}/etc/systemd/system/network-online.target.wants"
-    - "/var/lib/machines/{{ container_image }}/etc/systemd/system/sockets.target.wants"
-    - "/var/lib/machines/{{ container_image }}/etc/systemd/system/network-online.target.wants"
+    - "/var/lib/machines/{{ base_image }}/etc/systemd/system/network-online.target.wants"
+    - "/var/lib/machines/{{ base_image }}/etc/systemd/system/sockets.target.wants"
+    - "/var/lib/machines/{{ base_image }}/etc/systemd/system/network-online.target.wants"
   delegate_to: "{{ physical_host }}"
 
 - file:
@@ -36,13 +36,13 @@
     force: true
   delegate_to: "{{ physical_host }}"
   with_items:
-    - { name: "/var/lib/machines/{{ container_image }}/etc/systemd/system/dbus-org.freedesktop.network1.service", 
+    - { name: "/var/lib/machines/{{ base_image }}/etc/systemd/system/dbus-org.freedesktop.network1.service", 
         src: "/lib/systemd/system/systemd-networkd.service" }
-    - { name: "/var/lib/machines/{{ container_image }}/etc/systemd/system/multi-user.target.wants/systemd-networkd.service",
+    - { name: "/var/lib/machines/{{ base_image }}/etc/systemd/system/multi-user.target.wants/systemd-networkd.service",
         src: "/lib/systemd/system/systemd-networkd.service" }
-    - { name: "/var/lib/machines/{{ container_image }}/etc/systemd/system/sockets.target.wants/systemd-networkd.socket",
+    - { name: "/var/lib/machines/{{ base_image }}/etc/systemd/system/sockets.target.wants/systemd-networkd.socket",
         src: "/lib/systemd/system/systemd-networkd.socket" }
-    - { name: "/var/lib/machines/{{ container_image }}/etc/systemd/system/network-online.target.wants/systemd-networkd-wait-online.service",
+    - { name: "/var/lib/machines/{{ base_image }}/etc/systemd/system/network-online.target.wants/systemd-networkd-wait-online.service",
         src: "/lib/systemd/system/systemd-networkd-wait-online.service" }
 
 - name: "pre enable systemd-resolved inside container"
@@ -53,7 +53,7 @@
     force: true
   delegate_to: "{{ physical_host }}"
   with_items:
-    - { name: "/var/lib/machines/{{ container_image }}/etc/systemd/system/dbus-org.freedesktop.resolve1.service",
+    - { name: "/var/lib/machines/{{ base_image }}/etc/systemd/system/dbus-org.freedesktop.resolve1.service",
         src: "/lib/systemd/system/systemd-resolved.service" }
-    - { name: "/var/lib/machines/{{ container_image }}/etc/systemd/system/multi-user.target.wants/systemd-resolved.service",
+    - { name: "/var/lib/machines/{{ base_image }}/etc/systemd/system/multi-user.target.wants/systemd-resolved.service",
         src: "/lib/systemd/system/systemd-resolved.service" }

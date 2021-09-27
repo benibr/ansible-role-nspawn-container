@@ -24,6 +24,4 @@
     path: /var/lib/machines/{{ inventory_hostname }}/etc/ssh/sshd_config
     regexp: '^PermitRootLogin'
     line: 'PermitRootLogin prohibit-password'
-  when:
-    - enable_linklocal == false
   delegate_to: "{{ physical_host }}"

@@ -5,8 +5,7 @@
   gather_facts: true
 
 - name: (Re-) create example container(s)
-  hosts: veth
-  #hosts: all_containers
+  hosts: all_containers
   gather_facts: false
   become: true
 

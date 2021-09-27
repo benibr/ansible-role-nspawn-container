@@ -5,7 +5,7 @@
   delegate_facts: true
   run_once: true
 
-- name: Gather variables for each operating system
+- name: Generate variables for each operating system
   include_vars: "{{ item }}"
   with_first_found:
     - files:
@@ -46,8 +46,8 @@
   delegate_to: "{{ physical_host }}"
 
 - name: Get base image status
-  command: machinectl image-status "{{ container_image }}"
-  register: machinectl_image_status
+  command: machinectl image-status "{{ base_image }}"
+  register: machinectl_base_image_status
   failed_when: false
   changed_when: false
   delegate_to: "{{ physical_host }}"
@@ -55,17 +55,17 @@
 - name: "create base image"
   include: "create_base_image.yml"
   when:
-    - machinectl_container_image_status.rc != 0
+    - machinectl_base_image_status.rc != 0
     - create_base_image == true
 
 - name: Fail if base image does not exist
   fail:
     msg: >
-      The base container image "{{ container_image }}" does not exist and
+      The base container image "{{ base_image }}" does not exist and
       'create_base_image' is set to false. Cannot create container
   when:
     - create_base_image == false
-    - machinectl_image_status.rc != 0
+    - machinectl_base_image_status.rc != 0
 
 - name: Locate nspawn config
   stat:
@@ -111,7 +111,7 @@
   when: use_existing_netns is defined
 
 - name: Clone the base container image
-  command: machinectl clone "{{ container_image }}" "{{ inventory_hostname }}"
+  command: machinectl clone "{{ base_image }}" "{{ inventory_hostname }}"
   register: machinectl_container_clone
   retries: 3
   delay: 2

@@ -4,6 +4,7 @@
   package:
     name: [ "{{ systemd_container_pkg | default('systemd-container') }}", 'debootstrap', "{{ libnss_mymachines_pkg | default('libnss-mymachines') }}" ]
 - name: Enable LLMNR
+  # is this nessesary? or just use mymachines
   lineinfile:
     path: "/etc/systemd/resolved.conf"
     regexp: '^.*LLNMR=$'
@@ -12,7 +13,6 @@
   delegate_to: "{{ physical_host }}"
   when:
     - enable_llmnr is defined
-  # is this nessesary? or just use mymachines
 - service:
     name: systemd-networkd
     state: started
