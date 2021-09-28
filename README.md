@@ -27,12 +27,13 @@ Might be useful for creating nspawns on servers in your local network or for cre
 ## planned feature
 * check resolved setup depending on network connection
 * skipping most of the steps if container already exists
-* add the root users authorized keys to the container
+  maybe add tags
 * bind container SSH on random highport if netns is shared with host
 
 ## possible but not planned features
 * static IP config inside the container
 * bridge setup with DHCP
+* add the root users authorized keys to the container
 
 ## Usage
 See the default/main.yml for default values and usable variables. Additionally there are some example configs in the `example/` folder.
