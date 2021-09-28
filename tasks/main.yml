@@ -218,7 +218,6 @@
     - enable_linklocal == false
   delegate_to: "{{ physical_host }}"
 
-  # fixme: this should copy /etc/resolv.conf if resovled is not used
 - name: Create resolved link
   file:
     src: "/var/run/systemd/resolve/resolv.conf"
@@ -237,7 +236,7 @@
     regexp: '^.*DNS=$'
     insertafter: '[Resolve]'
     line: "DNS={{ dns_servers | default('9.9.9.9 2620:fe::fe') }}"
-  notify: restart systemd-resolved
+  #notify: restart systemd-resolved
   delegate_to: "{{ physical_host }}"
   when:
     - dns_servers is defined
