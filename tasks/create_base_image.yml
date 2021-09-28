@@ -6,7 +6,7 @@
   delegate_to: "{{ physical_host }}"
 
 - name: "debootstrap ubuntu container"
-  command: 'debootstrap --components=main,universe --arch=amd64 --include vim,openssh-server,avahi-daemon,python3-apt,dirmngr,gpg-agent,apt-transport-https focal /var/lib/machines/{{ base_image }} http://de.archive.ubuntu.com/ubuntu'
+  command: 'debootstrap --components=main,universe --arch=amd64 --include vim,openssh-server,avahi-daemon,python3-apt,dirmngr,gpg-agent,apt-transport-https,libnss-resolve focal /var/lib/machines/{{ base_image }} http://de.archive.ubuntu.com/ubuntu'
   args:
     creates: "/var/lib/machines/{{ base_image }}/usr"
   delegate_to: "{{ physical_host }}"
