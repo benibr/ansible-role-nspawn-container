@@ -25,3 +25,10 @@
     regexp: '^PermitRootLogin'
     line: 'PermitRootLogin prohibit-password'
   delegate_to: "{{ physical_host }}"
+
+- name: "set SSH port inside container to highport"
+  lineinfile:
+    path: /var/lib/machines/{{ inventory_hostname }}/etc/ssh/sshd_config
+    regexp: '^Port'
+    line: "Port {{ ssh_port }}"
+  delegate_to: "{{ physical_host }}"

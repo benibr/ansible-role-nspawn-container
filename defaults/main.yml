@@ -10,6 +10,7 @@ enable_linklocal: false
 
 # configure SSH inside the container to enable key based root login
 enable_ssh: true
+ssh_port: 22
 
 # what kind of network connection should the container have
 # arbitray name must be set to distinguish multiple networks

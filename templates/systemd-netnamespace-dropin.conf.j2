@@ -1,5 +1,5 @@
 [Service]
-{% if exec_before %}
+{% if exec_before is defined %}
 ExecStartPre={{ exec_before }}
 {% endif %}
 ExecStart=
