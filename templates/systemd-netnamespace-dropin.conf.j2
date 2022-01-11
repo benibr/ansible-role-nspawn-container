@@ -3,4 +3,4 @@
 ExecStartPre={{ exec_before }}
 {% endif %}
 ExecStart=
-ExecStart=/usr/bin/systemd-nspawn --quiet --keep-unit --boot --link-journal=try-guest --netns={{ use_existing_netns }} -U --settings=override --machine=%i
+ExecStart=/usr/bin/systemd-nspawn --quiet --keep-unit --boot --link-journal=try-guest --network-namespace-path=/run/netns/={{ use_existing_netns }} -U --settings=override --machine=%i
