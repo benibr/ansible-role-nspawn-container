@@ -45,7 +45,7 @@ Bind={{ bind.host_path }}{% if bind.container_path is defined %}:{{ bind.contain
 {% endfor %}
 
 [Network]
-{% if ns.private_network == False %}
+{% if ns.private_network == False or use_existing_netns is defined %}
 Private=no
 {% else %}
 Private=yes
