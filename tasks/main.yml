@@ -238,8 +238,6 @@
     line: "DNS={{ dns_servers | default('9.9.9.9 2620:fe::fe') }}"
   #notify: restart systemd-resolved
   delegate_to: "{{ physical_host }}"
-  when:
-    - dns_servers is defined
 
 - name: Enable LLMNR
   lineinfile:

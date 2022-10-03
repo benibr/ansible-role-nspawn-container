@@ -32,3 +32,4 @@
     regexp: '^Port'
     line: "Port {{ ssh_port }}"
   delegate_to: "{{ physical_host }}"
+  register: ssh_port
