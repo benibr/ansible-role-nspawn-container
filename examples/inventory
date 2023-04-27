@@ -5,6 +5,7 @@ physical_host
 
 [all_containers]
 macvlan
+ipvlan
 hostinterface
 veth
 hostnetwork

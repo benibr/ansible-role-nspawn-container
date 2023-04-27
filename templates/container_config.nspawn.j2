@@ -1,6 +1,7 @@
 # {{ ansible_managed }}
 {% set ns = namespace(veth=False, private_network=True) %}
 {% set macvlans=[] %}
+{% set ipvlans=[] %}
 {% set hostinterfaces=[] %}
 {% set ports=[] %}
 {% for network,parameters in container_combined_networks.items() %}
@@ -8,6 +9,8 @@
 {%     set ns.private_network = False %}
 {%   elif parameters['type'] == 'macvlan' %}
 {%     set _ = macvlans.append(parameters['interface']) %}
+{%   elif parameters['type'] == 'ipvlan' %}
+{%     set _ = ipvlans.append(parameters['interface']) %}
 {%   elif parameters['type'] == 'veth' %}
 {%     set ns.veth = True %}
 {%   elif parameters['type'] == 'hostinterface' %}
@@ -57,6 +60,9 @@ VirtualEthernet=yes
 {%   endif %}
 {%   if macvlans | length > 0 %}
 MACVLAN={{ macvlans | unique | join(' ') }}
+{%   endif %}
+{%   if ipvlans | length > 0 %}
+IPVLAN={{ ipvlans | unique | join(' ') }}
 {%   endif %}
 {%   if hostinterfaces | length > 0 %}
 Interface={{ hostinterfaces | unique | join(' ') }}
