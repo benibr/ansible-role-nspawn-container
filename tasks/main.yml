@@ -82,12 +82,23 @@
   when:
     - not nspawn_config.stat.exists
 
-- name: Create dropin config directory
-  file:
-    path: "/etc/systemd/system/systemd-nspawn@{{ inventory_hostname }}.service.d"
-    state: directory
-  when: use_existing_netns is defined
-  delegate_to: "{{ physical_host }}"
+- name: Create systemd dropin configs
+  block:
+    - name: Create systemd dropin config directory
+      file:
+        path: "/etc/systemd/system/systemd-nspawn@{{ inventory_hostname }}.service.d"
+        state: directory
+      delegate_to: "{{ physical_host }}"
+    - name: Copy container service dropin config
+      template:
+        src: templates/systemd-netnamespace-dropin.conf.j2
+        dest: "/etc/systemd/system/systemd-nspawn@{{ inventory_hostname }}.service.d/override.conf"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+      delegate_to: "{{ physical_host }}"
+  when: use_existing_netns is defined or exec_post is defined or exec_pre is defined
+
 
 - name: Copy container config
   template:
@@ -99,16 +110,6 @@
   register: container_config_new
   delegate_to: "{{ physical_host }}"
   when: not nspawn_config.stat.exists | bool
-
-- name: Copy container service dropin config
-  template:
-    src: templates/systemd-netnamespace-dropin.conf.j2
-    dest: "/etc/systemd/system/systemd-nspawn@{{ inventory_hostname }}.service.d/use_existing_netns.conf"
-    owner: "root"
-    group: "root"
-    mode: "0644"
-  delegate_to: "{{ physical_host }}"
-  when: use_existing_netns is defined
 
 - name: Clone the base container image
   command: machinectl clone "{{ base_image }}" "{{ inventory_hostname }}"

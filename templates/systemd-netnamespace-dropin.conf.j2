@@ -1,6 +1,8 @@
 [Service]
 {% if exec_pre is defined %}
-ExecStartPre={{ exec_pre }}
+{% for item in exec_pre %}
+ExecStartPre={{ item }}
+{% endfor %}
 {% endif %}
 ExecStart=
 ExecStart=/usr/bin/systemd-nspawn --quiet --keep-unit --boot --link-journal=try-guest -U --machine=%i
@@ -8,5 +10,7 @@ ExecStart=/usr/bin/systemd-nspawn --quiet --keep-unit --boot --link-journal=try-
 NetworkNamespacePath=/run/netns/{{ use_existing_netns }}
 {% endif %}
 {% if exec_post is defined %}
-ExecStartPost={{ exec_post }}
+{% for item in exec_post %}
+ExecStartPost={{ item }}
+{% endfor %}
 {% endif %}
