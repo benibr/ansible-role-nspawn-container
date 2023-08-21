@@ -1,6 +1,12 @@
 [Service]
-{% if exec_before is defined %}
-ExecStartPre={{ exec_before }}
+{% if exec_pre is defined %}
+ExecStartPre={{ exec_pre }}
 {% endif %}
 ExecStart=
-ExecStart=/usr/bin/systemd-nspawn --quiet --keep-unit --boot --link-journal=try-guest --network-namespace-path=/run/netns/ use_existing_netns }} -U --settings=override --machine=%i
+ExecStart=/usr/bin/systemd-nspawn --quiet --keep-unit --boot --link-journal=try-guest -U --machine=%i
+{% if use_existing_netns is defined %}
+NetworkNamespacePath=/run/netns/{{ use_existing_netns }}
+{% endif %}
+{% if exec_post is defined %}
+ExecStartPost={{ exec_post }}
+{% endif %}
