@@ -175,7 +175,6 @@
     dest: "/var/lib/machines/{{ inventory_hostname }}/var/lib/dbus/machine-id"
     mode: "0444"
     remote_src: "yes"
-  remote_user: root
   delegate_to: "{{ physical_host }}"
 
 ### network / DNS config
