@@ -53,6 +53,9 @@ container_architecture: "{{ hostvars[container_host]['ansible_architecture'] | l
 # this defaults to the distro, release and architecture of the host system
 base_image: "{{ nspawn_map['distro'] }}-{{ nspawn_map['release'] }}-{{ nspawn_map['arch'] }}"
 
+# Additional capabilities added to the containers nspawn file
+container_add_caps:
+
 # The mDNS domain the containers will exist within. Only relevant it avahi is enabled.
 # Every container will have a FQDN consisting of
 # <container>.<host>.<container_domain>

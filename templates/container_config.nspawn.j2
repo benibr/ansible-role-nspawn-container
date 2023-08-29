@@ -37,6 +37,9 @@ Environment={{ key }}={{ value }}
 {%   endfor %}
 {% endif %}
 MachineID={{ systemd_escape.stdout | to_uuid }}
+{% if container_add_caps %}
+Capability={{ container_add_caps }}
+{% endif %}
 
 [Files]
 {% for ro_bind in container_default_ro_bind_mounts | union(container_ro_bind_mounts | default([])) %}
