@@ -67,20 +67,11 @@
     - create_base_image == false
     - machinectl_base_image_status.rc != 0
 
-- name: Locate nspawn config
-  stat:
-    path: "/etc/systemd/nspawn/{{ inventory_hostname }}.nspawn"
-  register: nspawn_config
-  changed_when: false
-  delegate_to: "{{ physical_host }}"
-
 - name: Create nspawn directory
   file:
     path: "/etc/systemd/nspawn"
     state: "directory"
   delegate_to: "{{ physical_host }}"
-  when:
-    - not nspawn_config.stat.exists
 
 - name: Create systemd dropin configs
   block:
@@ -99,7 +90,6 @@
       delegate_to: "{{ physical_host }}"
   when: use_existing_netns is defined or exec_post is defined or exec_pre is defined
 
-
 - name: Copy container config
   template:
     src: templates/container_config.nspawn.j2
@@ -109,7 +99,6 @@
     mode: "0644"
   register: container_config_new
   delegate_to: "{{ physical_host }}"
-  when: not nspawn_config.stat.exists | bool
 
 - name: Clone the base container image
   command: machinectl clone "{{ base_image }}" "{{ inventory_hostname }}"
