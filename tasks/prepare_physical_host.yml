@@ -12,7 +12,7 @@
     line: "LLMNR=yes"
   delegate_to: "{{ physical_host }}"
   when:
-    - enable_llmnr is defined
+    - enable_llmnr
 - service:
     name: systemd-networkd
     state: started
